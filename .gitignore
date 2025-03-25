@@ -1,0 +1,19 @@
+# Visual Studio 기본
+.vs/
+*.user
+*.suo
+
+# 빌드 출력 파일
+Debug/
+Release/
+*.obj
+*.pdb
+*.exe
+*.log
+*.ilk
+*.idb
+
+# CMake, Makefile 등 쓰는 경우 추가
+CMakeFiles/
+CMakeCache.txt
+Makefile
