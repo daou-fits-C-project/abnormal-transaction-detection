@@ -133,10 +133,14 @@
     <ClCompile Include="cJSON.c" />
     <ClCompile Include="db.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="order_queue.c" />
+    <ClCompile Include="socket.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="db.h" />
+    <ClInclude Include="order_queue.h" />
+    <ClInclude Include="socket.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
