@@ -59,3 +59,15 @@ int login(USERINFO* p_userinfo) {	// -1 : 로그인 에러, 0 : 일반 사용자, 1 : 관리
 
 	}
 }
+
+int create_user() {
+	
+}
+
+int update_user() {
+
+}
+
+int delete_user() {
+
+}

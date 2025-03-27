@@ -20,5 +20,7 @@ typedef struct {
 } USERINFO;
 
 int login(USERINFO* p_userinfo);	// ·Î±×ÀÎ
-
+int create_user();
+int update_user();
+int delete_user();
 #endif
