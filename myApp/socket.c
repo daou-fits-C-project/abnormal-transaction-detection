@@ -4,7 +4,7 @@
 #include "order_queue.h"
 
 #pragma comment(lib, "ws2_32.lib") // 링커 설정
-SOCKET setup_server_socket() {
+void setup_server_socket(SOCKET* server_sock) {
     // 1. WinSock 초기화 (Windows에서만 필요)
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -13,8 +13,8 @@ SOCKET setup_server_socket() {
     }
 
     // 2. 소켓 생성
-    SOCKET server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock == INVALID_SOCKET) {
+    *server_sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (*server_sock == INVALID_SOCKET) {
         printf("소켓 생성 실패: %d\n", WSAGetLastError());
         return INVALID_SOCKET;
     }
@@ -26,13 +26,13 @@ SOCKET setup_server_socket() {
     server_addr.sin_addr.s_addr = INADDR_ANY; // 모든 인터페이스 허용
 
     // 4. bind
-    if (bind(server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
+    if (bind(*server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
         printf("bind 실패: %d\n", WSAGetLastError());
         return INVALID_SOCKET;
     }
 
     // 5. listen
-    listen(server_sock, SOMAXCONN);
+    listen(*server_sock, SOMAXCONN);
     printf("서버 대기 중 ... (포트: %d) \n", PORT);
 
 
@@ -41,14 +41,14 @@ SOCKET setup_server_socket() {
     queue_not_empty_event = CreateEvent(NULL, FALSE, FALSE, NULL);
 
     // 7. 수신/워커 thread 분리
-    CreateThread(NULL, 0, receiver_thread, &server_sock, 0, NULL);
+    CreateThread(NULL, 0, receiver_thread, server_sock, 0, NULL);
     for (int i = 0; i < MAX_THREADS; i++)
     {
         CreateThread(NULL, 0, worker_thread, NULL, 0, NULL);
 
     }
 
-    return server_sock;
+    //return server_sock;
 }
 
 void cleanup_server_socket(SOCKET* server_sock) {
