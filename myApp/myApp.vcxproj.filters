@@ -36,7 +36,7 @@
     <ClCompile Include="util.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="user.c">
+    <ClCompile Include="customer.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,7 +59,7 @@
     <ClInclude Include="util.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="user.h">
+    <ClInclude Include="customer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -136,7 +136,7 @@
     <ClCompile Include="order_queue.c" />
     <ClCompile Include="socket.c" />
     <ClCompile Include="account.c" />
-    <ClCompile Include="user.c" />
+    <ClCompile Include="customer.c" />
     <ClCompile Include="util.c" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +145,7 @@
     <ClInclude Include="order_queue.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="account.h" />
-    <ClInclude Include="user.h" />
+    <ClInclude Include="customer.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>

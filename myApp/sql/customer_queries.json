@@ -1,0 +1,3 @@
+{
+  "selectByEmailPassword": "SELECT customer_id, name, is_admin FROM customer WHERE email = :1 AND password = :2"
+}
