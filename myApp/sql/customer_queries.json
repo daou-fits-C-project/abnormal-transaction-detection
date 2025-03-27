@@ -1,0 +1,8 @@
+{
+  "selectByEmailPassword": "SELECT customer_id, name, is_admin FROM customer WHERE email = :1 AND password = :2",
+  "insert": "INSERT INTO CUSTOMER (name, is_admin, email, password) VALUES (:1, :2, :3, :4)",
+  "updateName": "UPDATE CUSTOMER SET name = :1 WHERE customer_id = :2",
+  "updatePassword": "UPDATE CUSTOMER SET password = :1 WHERE customer_id = :2",
+  "updateIsAdmin": "UPDATE CUSTOMER SET is_admin = :1 WHERE customer_id = :2",
+  "delete": "DELETE CUSTOMER WHERE customer_id = :1"
+}
