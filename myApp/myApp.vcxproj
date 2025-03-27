@@ -135,12 +135,19 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="order_queue.c" />
     <ClCompile Include="socket.c" />
+    <ClCompile Include="account.c" />
+    <ClCompile Include="util.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="db.h" />
     <ClInclude Include="order_queue.h" />
     <ClInclude Include="socket.h" />
+    <ClInclude Include="account.h" />
+    <ClInclude Include="util.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sql\account_queries.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
