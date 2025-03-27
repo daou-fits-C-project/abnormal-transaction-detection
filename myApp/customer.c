@@ -6,7 +6,7 @@
 
 OCIStmt* stmthp;
 
-int login(USERINFO* p_userinfo) {
+int login(USERINFO* p_userinfo) {	// -1 : 로그인 에러, 0 : 일반 사용자, 1 : 관리자
 	OCIDefine* def1 = NULL, * def2 = NULL, * def3 = NULL;
 	OCIBind* bnd1 = NULL, * bnd2 = NULL;
 	LOGIN login;
