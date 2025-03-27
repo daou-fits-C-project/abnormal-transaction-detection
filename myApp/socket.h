@@ -9,6 +9,7 @@
 #define MAX_THREADS 4
 #define PORT 9000
 
-int setup_server_socket();
+SOCKET setup_server_socket();
+void cleanup_server_socket(SOCKET* server_sock);
 DWORD WINAPI receiver_thread(LPVOID lpParam);
 DWORD WINAPI worker_thread(LPVOID lpParam);
