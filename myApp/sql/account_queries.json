@@ -1,0 +1,10 @@
+{
+  "selectAll": "SELECT * FROM account ORDER BY customer_id",
+  "selectByAccountId": "SELECT * FROM account WHERE account_id = :1",
+  "selectByCustomerId": "SELECT * FROM account WHERE customer_id = :1",
+  "insert": "INSERT INTO account (status, customer_id) VALUES (:1, :2)",
+  "updateStatusById": "UPDATE account SET status = :1 WHERE account_id = :2",
+  "updateBalanceById": "UPDATE account SET balance = :1 WHERE account_id = :2",
+  "deleteById": "DELETE FROM account WHERE account_id = :1",
+  "getCount": "SELECT COUNT(account_id) FROM account"
+}
