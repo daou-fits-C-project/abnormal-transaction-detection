@@ -4,20 +4,19 @@
 #include "order_queue.h"
 
 #pragma comment(lib, "ws2_32.lib") // 링커 설정
-
-int setup_server_socket() {
+SOCKET setup_server_socket() {
     // 1. WinSock 초기화 (Windows에서만 필요)
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         printf("WSAStartup 실패: %d\n", WSAGetLastError());
-        return 1;
+        return INVALID_SOCKET;
     }
 
     // 2. 소켓 생성
     SOCKET server_sock = socket(AF_INET, SOCK_STREAM, 0);
     if (server_sock == INVALID_SOCKET) {
         printf("소켓 생성 실패: %d\n", WSAGetLastError());
-        return 1;
+        return INVALID_SOCKET;
     }
 
     // 3. 주소 정보 설정
@@ -29,7 +28,7 @@ int setup_server_socket() {
     // 4. bind
     if (bind(server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
         printf("bind 실패: %d\n", WSAGetLastError());
-        return 1;
+        return INVALID_SOCKET;
     }
 
     // 5. listen
@@ -48,14 +47,14 @@ int setup_server_socket() {
         CreateThread(NULL, 0, worker_thread, NULL, 0, NULL);
 
     }
-    while (1) Sleep(1000);
 
-    // 8. 종료 처리
-    closesocket(server_sock);
-    WSACleanup();
-    return 0;
+    return server_sock;
 }
 
+void cleanup_server_socket(SOCKET* server_sock) {
+    closesocket(*server_sock);
+    WSACleanup();
+}
 
 DWORD WINAPI receiver_thread(LPVOID lpParam) {
     OrderTask task;
