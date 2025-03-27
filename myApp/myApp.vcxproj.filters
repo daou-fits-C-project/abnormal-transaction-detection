@@ -39,6 +39,9 @@
     <ClCompile Include="customer.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="fds.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="db.h">
@@ -60,6 +63,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="customer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="fds.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
