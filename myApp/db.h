@@ -1,6 +1,6 @@
 #pragma once
 #include <oci.h>
-#define MAX_QUERY_SIZE 100
+#define MAX_QUERY_SIZE 200
 
 int db_init();
 void db_cleanup();
