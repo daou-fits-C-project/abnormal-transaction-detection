@@ -59,7 +59,7 @@ void get_accounts(Account* acc_arr) {
         NULL, NULL, OCI_DEFAULT);
     OCIDefineByPos(stmthp, &def3, errhp, 3, &acc.status, sizeof(acc.status), SQLT_INT, NULL,
         NULL, NULL, OCI_DEFAULT);
-    OCIDefineByPos(stmthp, &def4, errhp, 4, &acc.customer_id, sizeof(acc.account_id), SQLT_INT, NULL,
+    OCIDefineByPos(stmthp, &def4, errhp, 4, &acc.customer_id, sizeof(acc.customer_id), SQLT_INT, NULL,
         NULL, NULL, OCI_DEFAULT);
     OCIDefineByPos(stmthp, &def5, errhp, 5, created_at, sizeof(created_at), SQLT_STR, NULL,
         NULL, NULL, OCI_DEFAULT);

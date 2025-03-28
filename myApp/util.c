@@ -8,6 +8,7 @@ int datetime_to_tm(const char* datetime_str, struct tm* result) {
     int y, m, d, h, min, s;
     int parsed = sscanf(datetime_str, "%d/%d/%d %d:%d:%d", &y, &m, &d, &h, &min, &s);
     if (parsed != 6) return -1;
+    if (y < 100) y += 2000;
 
     //memset(result, 0, sizeof(struct tm));
     result->tm_year = y - 1900;

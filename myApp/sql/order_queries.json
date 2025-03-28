@@ -1,0 +1,10 @@
+{
+  "insert": "INSERT INTO stock_order (stock_id, price, amount, type, status, account_id) VALUES (:1, :2, :3, :4, :5, :6)",
+  "selectAll": "SELECT * FROM stock_order",
+  "selectByAccountId": "SELECT * FROM stock_order WHERE account_id = :1",
+  "selectByStatus": "SELECT * FROM stock_order WHERE status = :1",
+  "getCount": "SELECT COUNT(order_id) FROM stock_order",
+  "getCountByAccountId": "SELECT COUNT(order_id) FROM stock_order WHERE account_id = :1",
+  "getCountByStatus": "SELECT COUNT(order_id) FROM stock_order WHERE status = :1",
+  "updateStatusById": "UPDATE stock_order SET status = :1 WHERE order_id = :2"
+}
