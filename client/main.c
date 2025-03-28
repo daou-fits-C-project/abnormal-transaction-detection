@@ -6,6 +6,23 @@
 #pragma comment(lib, "ws2_32.lib")
 #define PORT 9000
 #define CLIENT_COUNT 10
+const char* random_order_type() {
+    return (rand() % 2 == 0) ? "BUY" : "SELL";
+}
+
+void make_random_order_message(char* buffer, size_t bufsize, int client_id) {
+    const char* stock_id = "023590";                                         // 다우기술
+    int base_price = 21500;
+    int fluctuation = base_price * 0.1;                                      // 10% 변동: 2150원
+    int price = base_price - fluctuation + (rand() % (2 * fluctuation + 1)); // 19350 ~ 23650
+    int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    const char* type = random_order_type();                                  // BUY or SELL
+    //int account_id = 1000 + client_id;
+    int account_id = 1102;
+
+    snprintf(buffer, bufsize, "%s,%d,%d,%s,%d",
+        stock_id, price, amount, type, account_id);
+}
 
 
 DWORD WINAPI client_thread(LPVOID arg) {
@@ -38,9 +55,13 @@ DWORD WINAPI client_thread(LPVOID arg) {
         return 1;
     }
 
-    // 주문 메시시 담기 (for 루프를 통해 반복 요청도 가능)
-    char message[128];
-    sprintf(message, "ORDER: BUY %d\n", client_id * 10); 
+    srand((unsigned int)time(NULL) + client_id);
+    // CSV 포맷으로 직렬화
+    char message[256];
+    /*snprintf(message, sizeof(message), "%s,%d,%d,%s,%d",
+        stock_id, price, amount, type, account_id);*/
+    make_random_order_message(message, sizeof(message), client_id);
+
     send(sock, message, (int)strlen(message), 0);
     printf("[Client %d] 주문 전송: %s", client_id, message);
 
