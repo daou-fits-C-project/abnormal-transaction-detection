@@ -14,7 +14,7 @@ static OCIServer* srvhp = NULL;
 int db_init() {
     char* username = "C##DEV";
     char* password = "1234";
-    char* dbname = "localhost:1521/xe";
+    char* dbname = "192.168.31.72:1521/xe";
 
     // 환경 핸들 생성
     if (OCIEnvCreate(&envhp, OCI_DEFAULT, NULL, NULL, NULL, NULL, 0, NULL) !=

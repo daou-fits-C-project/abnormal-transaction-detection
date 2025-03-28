@@ -1,0 +1,6 @@
+{
+  "getAmountStatsInPeriod": "SELECT AVG(amount), STDDEV(amount) FROM transaction_log WHERE stock_id = :1 AND trade_date BETWEEN TRUNC(:2 - :3) AND TRUNC(:2) AND amount > 0",
+  "getAmountToday": "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE stock_id = :1 AND TRUNC(created_at) = TRUNC(:2)",
+  "getAmountByAccountId": "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE account_id = :1 AND stock_id = :2 AND TRUNC(created_at) = TRUNC(:3)",
+  "getCountByFiveMin": "SELECT count(*) FROM stock_order WHERE account_id = :1 AND stock_id = :2 AND created_at BETWEEN TO_TIMESTAMP(:3, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(:4, 'YYYY-MM-DD HH24:MI:SS')"
+}
