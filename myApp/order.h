@@ -28,11 +28,13 @@ typedef struct {
 
 
 // 주요 함수 선언
-void add_order(const char* csv);
+int add_order(StockOrder* order);
+void print_order(const StockOrder* order);
 void print_orders(StockOrder* order_arr, int count);
 
 int get_order_count_by_account(int account_id);
 void get_orders_by_account(StockOrder* order_arr, int account_id);
+int handle_client_order(const char* csv);
 void handle_order();
 
 // 직렬화 및 파싱 관련

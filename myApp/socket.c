@@ -98,12 +98,12 @@ DWORD WINAPI receiver_thread(LPVOID lpParam) {
                 if (s == server) {
                     SOCKET client = accept(server, NULL, NULL);
                     FD_SET(client, &master_set);
-                    printf("클라이언트 접속: %d\n", (int)client);
+                    //printf("클라이언트 접속: %d\n", (int)client);
                 }
                 else {
                     char buf[1024] = { 0 };
                     int len = recv(s, buf, sizeof(buf), 0);
-                    printf("소켓 % d → recv() 결과: % d 바이트\n", s, len);
+                    //printf("소켓 % d → recv() 결과: % d 바이트\n", s, len);
                     if (len <= 0) {
                         closesocket(s);
                         FD_CLR(s, &master_set);
@@ -112,7 +112,7 @@ DWORD WINAPI receiver_thread(LPVOID lpParam) {
                     else {
                         task.client_socket = s;
                         strncpy(task.data, buf, sizeof(task.data));
-                        printf("[Receiver] client: %d, data: %s\n", task.client_socket, task.data);
+                        //printf("[Receiver] client: %d, data: %s\n", task.client_socket, task.data);
                         enqueue(task);
                     }
                 }
@@ -136,8 +136,8 @@ DWORD WINAPI worker_thread(LPVOID lpParam) {
             OrderTask task = dequeue();
 
              // 주문 처리 로직 함수 
-             printf("[Worker] 주문 처리: %s (소켓: %d)\n", task.data, (int)task.client_socket);
-             add_order(task.data);
+             //printf("[Worker] 주문 처리: %s (소켓: %d)\n", task.data, (int)task.client_socket);
+             handle_client_order(task.data);
      
              const char* response = "ORDER RECEIVED\n";
              send(task.client_socket, response, (int)strlen(response), 0);
