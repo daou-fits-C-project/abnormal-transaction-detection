@@ -4,6 +4,8 @@
 #include "socket.h"
 #include "account.h"
 #include "fds.h"
+#include "manage.h"
+#include "customer.h"
 
 int main()
 {
@@ -22,7 +24,8 @@ int main()
     }
 
     // 여기에 main 로직 들어갈 수 있음
-    handle_account();
+    login();
+    run_manage();
 
     // 소켓 종료 및 자원 해제
     cleanup_server_socket(&server_sock);

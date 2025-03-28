@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include "manage.h"
+#include "order.h"
 
 void run_manage() {
 	int choice;
@@ -28,18 +29,13 @@ void run_manage() {
 		scanf("%d", &choice);
 		system("cls");
 		switch (choice) {
-		case 1: select_all_with_accounts(); break;
+		case 1: select_all_with_accounts(); to_be_continue(); break;
 		case 2: handle_transaction_log(); break;
 		case 3: handle_order(); break;
 		case 4: abnormal_analysis_report(); break;
 		case 5: return;
 		default: printf("올바른 메뉴를 선택하세요\n"); break;
 		}
-		char key;
-		do {
-			printf("계속 하시려면 ENTER를 누르세요.. ");
-			key = _getch();
-		} while (key != 0x0d);
 
 		system("cls");
 	}
@@ -49,10 +45,14 @@ void handle_transaction_log() {
 
 }
 
-void handle_order() {
+void abnormal_analysis_report() {
 
 }
 
-void abnormal_analysis_report() {
-
+void to_be_continue() {
+	char key;
+	printf("계속 하시려면 ENTER를 누르세요.. ");
+	do {
+		key = _getch();
+	} while (key != 0x0d);
 }
