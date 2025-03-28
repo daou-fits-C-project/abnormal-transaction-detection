@@ -25,7 +25,7 @@ typedef struct {
 int get_accounts_count();
 void get_accounts(Account* acc_arr);
 void get_account_by_id(Account* acc_ptr, int account_id);
-void print_accounts();
+void print_accounts(Account* acc_arr, int count);
 void add_account(int customer_id);
 void update_account_status(int account_id, AccountStatus status);
 void update_account_balance(int account_id, int amount);
