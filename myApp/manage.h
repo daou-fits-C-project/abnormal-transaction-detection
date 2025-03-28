@@ -7,6 +7,6 @@ extern UserInfo current_user;
 
 void run_manage();
 void handle_transaction_log();
-void handle_order();
 void abnormal_analysis_report();
+void to_be_continue();
 #endif
