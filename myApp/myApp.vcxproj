@@ -133,6 +133,7 @@
     <ClCompile Include="cJSON.c" />
     <ClCompile Include="db.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="manage.c" />
     <ClCompile Include="order_queue.c" />
     <ClCompile Include="socket.c" />
     <ClCompile Include="account.c" />
@@ -142,6 +143,7 @@
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="db.h" />
+    <ClInclude Include="manage.h" />
     <ClInclude Include="order_queue.h" />
     <ClInclude Include="socket.h" />
     <ClInclude Include="account.h" />
@@ -150,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="sql\account_queries.json" />
+    <None Include="sql\customer_queries.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
