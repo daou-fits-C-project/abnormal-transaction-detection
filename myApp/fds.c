@@ -7,11 +7,11 @@
 #define DEBUG
 
 // 설정 변수
-int month = 30;                   // 거래량 계산 기간
-double stock_threshold = 0.674;   // 75% 신뢰도에 따른 Z Score
-double ratio = 0.7;               // 특정 계좌 거래량 비율
-double time_interval = 300;       // 과거 주문 내역 간격
-double lambda = 1;                // 단위 간격 동안의 주문 횟수
+int month = 10;                   // 거래량 계산 기간
+double stock_threshold = 0.74;    // 77% 신뢰도에 따른 Z Score
+double ratio = 0.3;               // 특정 계좌 거래량 비율
+double time_interval = 1800;      // 과거 주문 내역 간격
+double lambda = 2;                // 단위 간격 동안의 주문 횟수
 double lambda_threshold = 1.645;  // 95% 신뢰도에 따른 Z Score
 
 static OCIStmt* stmthp;
@@ -63,7 +63,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     double z_score = (today_amount + stock_order->amount - avg_amount) / std_amount;
 
 #ifdef DEBUG
-    printf("과거 30일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", avg_amount, std_amount);
+    printf("과거 %d일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", month, avg_amount, std_amount);
     printf("당일 총 거래량 : %.2lf\n", today_amount + stock_order->amount);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
@@ -77,8 +77,6 @@ int detect_account_amount(StockOrder* stock_order) {
     int customer_amount;
     // 당일 총 거래량
     int total_amount;
-    // 거래량 비율
-    double ratio_amount = 0;
 
     OCIDate today;
     struct tm* tm_info = &stock_order->created_at;
@@ -88,7 +86,7 @@ int detect_account_amount(StockOrder* stock_order) {
 
     // 해당 계좌의 거래량 SQL
     char* customer_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE account_id = :1 AND stock_id = :2 AND TRUNC(created_at) = TRUNC(:3)";
-
+    
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
     OCIStmtPrepare(stmthp, errhp, (text*)customer_sql, strlen(customer_sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
@@ -115,9 +113,7 @@ int detect_account_amount(StockOrder* stock_order) {
     if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) check_error(errhp);
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
-    if (total_amount != 0) {
-        ratio_amount = (double)(customer_amount + stock_order->amount) / (double)(total_amount + stock_order->amount);
-    }
+    double ratio_amount = (double)(customer_amount + stock_order->amount) / (double)(total_amount + stock_order->amount);
 
 #ifdef DEBUG
     printf("계좌: %d, 종목: %s\n", stock_order->account_id, stock_order->stock_id);
@@ -158,6 +154,7 @@ int detect_wash_sale(StockOrder* stock_order) {
     double z_score = ((double)count - lambda) / sqrt(lambda);
 
 #ifdef DEBUG
+    printf("%s ~ %s\n", start_time, end_time);
     printf("%.lf초 동안의 주문 횟수: %d\n", time_interval, count);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
