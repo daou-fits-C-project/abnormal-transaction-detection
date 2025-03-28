@@ -15,8 +15,10 @@ double lambda = 2;                // 단위 간격 동안의 주문 횟수
 double lambda_threshold = 1.645;  // 95% 신뢰도에 따른 Z Score
 
 static OCIStmt* stmthp;
-static OCIDefine* def1 = NULL, * def2 = NULL;
+static OCIDefine* def1 = NULL, * def2 = NULL, * def3 = NULL, * def4 = NULL, * def5 = NULL, * def6 = NULL, * def7 = NULL, * def8 = NULL, * def9 = NULL;
 static OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL;
+
+sword status;
 
 int detect_stock_amount(StockOrder* stock_order) {
     // 과거 30일 동안의 거래량
@@ -161,4 +163,52 @@ int detect_wash_sale(StockOrder* stock_order) {
 
     if (z_score >= lambda_threshold) return 0;
     return 1;
+}
+
+void report_FDS() {
+    FILE* file = fopen("FDS_report.csv", "w");
+    if (!file) {
+        printf("파일을 열 수 없습니다.\n");
+        return 1;
+    }
+    fprintf(file, "order_id,account_id,stock_id,price,amount,type,type_name,description,created_at\n");
+
+    char created_at[20];
+
+    char* select_sql = "SELECT at.order_id, at.account_id, at.stock_id, at.price, at.amount, at.type, dt.type_name, dt.description FROM abnormal_transaction at JOIN detection_type dt ON at.detection_id = dt.detection_id";
+    OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
+    OCIStmtPrepare(stmthp, errhp, (text*)select_sql, strlen(select_sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
+
+    OCIStmtExecute(svchp, stmthp, errhp, 0, 0, NULL, NULL, OCI_DEFAULT);
+
+    AbnormalTransaction abnormal_transaction;
+    OCIDefineByPos(stmthp, &def1, errhp, 1, &abnormal_transaction.order_id, sizeof(abnormal_transaction.order_id), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def2, errhp, 2, &abnormal_transaction.account_id, sizeof(abnormal_transaction.account_id), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def3, errhp, 3, abnormal_transaction.stock_id, sizeof(abnormal_transaction.stock_id), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def4, errhp, 4, &abnormal_transaction.price, sizeof(abnormal_transaction.price), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def5, errhp, 5, &abnormal_transaction.amount, sizeof(abnormal_transaction.amount), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def6, errhp, 6, &abnormal_transaction.type, sizeof(abnormal_transaction.type), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def7, errhp, 7, abnormal_transaction.type_name, sizeof(abnormal_transaction.type_name), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def8, errhp, 8, abnormal_transaction.description, sizeof(abnormal_transaction.description), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+    //OCIDefineByPos(stmthp, &def9, errhp, 9, created_at, sizeof(created_at), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+
+    int flag = 0;
+    while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT)) == OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
+        fprintf(file, "%d,%d,%s,%d,%d,%d,%s,%s\n",
+            abnormal_transaction.order_id,
+            abnormal_transaction.account_id,
+            abnormal_transaction.stock_id,
+            abnormal_transaction.price,
+            abnormal_transaction.amount,
+            abnormal_transaction.type,
+            abnormal_transaction.type_name,
+            abnormal_transaction.description
+            //created_at
+        );
+        flag = 1;
+    }
+
+    if (!flag) printf("이상 거래 내역이 존재하지 않습니다.\n");
+
+    fclose(file);
 }
