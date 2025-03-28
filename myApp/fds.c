@@ -7,11 +7,11 @@
 #define DEBUG
 
 // 설정 변수
-int month = 30;                   // 거래량 계산 기간
-double stock_threshold = 0.674;   // 75% 신뢰도에 따른 Z Score
-double ratio = 0.7;               // 특정 계좌 거래량 비율
-double time_interval = 300;       // 과거 주문 내역 간격
-double lambda = 1;                // 단위 간격 동안의 주문 횟수
+int month = 10;                   // 거래량 계산 기간
+double stock_threshold = 0.74;    // 77% 신뢰도에 따른 Z Score
+double ratio = 0.3;               // 특정 계좌 거래량 비율
+double time_interval = 1800;      // 과거 주문 내역 간격
+double lambda = 2;                // 단위 간격 동안의 주문 횟수
 double lambda_threshold = 1.645;  // 95% 신뢰도에 따른 Z Score
 
 static OCIStmt* stmthp;
@@ -31,7 +31,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     today.OCIDateDD = stock_order->created_at.tm_mday;
 
     // 과거 30일 동안의 거래량 SQL
-    char* z_score_sql = get_sql("sql/fbs_queries.json", "getAmountStatsInPeriod");
+    char* z_score_sql = "SELECT AVG(amount), STDDEV(amount) FROM transaction_log WHERE stock_id = :1 AND trade_date BETWEEN TRUNC(:2 - :3) AND TRUNC(:2) AND amount > 0";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
@@ -47,7 +47,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
     // 당일 총 거래량
-    char* today_sql = get_sql("sql/fbs_queries.json", "getAmountToday");
+    char* today_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE stock_id = :1 AND TRUNC(created_at) = TRUNC(:2)";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
@@ -63,7 +63,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     double z_score = (today_amount + stock_order->amount - avg_amount) / std_amount;
 
 #ifdef DEBUG
-    printf("과거 30일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", avg_amount, std_amount);
+    printf("과거 %d일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", month, avg_amount, std_amount);
     printf("당일 총 거래량 : %.2lf\n", today_amount + stock_order->amount);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
@@ -85,7 +85,7 @@ int detect_account_amount(StockOrder* stock_order) {
     today.OCIDateDD = stock_order->created_at.tm_mday;
 
     // 해당 계좌의 거래량 SQL
-    char* customer_sql = get_sql("sql/fbs_queries.json", "getAmountByAccountId");
+    char* customer_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE account_id = :1 AND stock_id = :2 AND TRUNC(created_at) = TRUNC(:3)";
     
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
@@ -100,7 +100,7 @@ int detect_account_amount(StockOrder* stock_order) {
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
     // 당일 총 거래량
-    char* today_sql = get_sql("sql/fbs_queries.json", "getAmountToday");
+    char* today_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE stock_id = :1 AND TRUNC(created_at) = TRUNC(:2)";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
@@ -130,7 +130,7 @@ int detect_wash_sale(StockOrder* stock_order) {
     int count = 0;
 
     // 해당 계좌의 5분 주문 수 쿼리
-    char* order_sql = get_sql("sql/fbs_queries.json", "getCountByFiveMin");
+    char* order_sql = "SELECT count(*) FROM stock_order WHERE account_id = :1 AND stock_id = :2 AND created_at BETWEEN TO_TIMESTAMP(:3, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(:4, 'YYYY-MM-DD HH24:MI:SS')";
 
     // time_inverval 초 전 계산
     strftime(end_time, sizeof(end_time), "%Y-%m-%d %H:%M:%S", &stock_order->created_at);
@@ -154,6 +154,7 @@ int detect_wash_sale(StockOrder* stock_order) {
     double z_score = ((double)count - lambda) / sqrt(lambda);
 
 #ifdef DEBUG
+    printf("%s ~ %s\n", start_time, end_time);
     printf("%.lf초 동안의 주문 횟수: %d\n", time_interval, count);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
