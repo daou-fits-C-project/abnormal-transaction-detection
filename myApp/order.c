@@ -3,19 +3,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <windows.h>
 #include "order.h"
 #include "db.h"
 #include "util.h"
+#include "fds.h"
+#include "account.h"
 
 
-void add_order(const char* csv) {
-    StockOrder order;
-    if (csv_string_to_order(csv, &order) != 0) {
-        printf("주문 파싱 실패\n");
-        return;
-    };
+int add_order(StockOrder *order) {
+    Account acc;
+    get_account_by_id(&acc, order->account_id);
+    if (acc.status != ACCOUNT_ACTIVE) return 0;
+
     OCIStmt* stmthp;
-    OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL, * bnd5 = NULL, * bnd6 = NULL;
+    OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL, * bnd5 = NULL, * bnd6 = NULL, * bnd7 = NULL;
 
     char* sql = get_sql("sql/order_queries.json", "insert");
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
@@ -23,19 +25,21 @@ void add_order(const char* csv) {
     free(sql);
 
     // 처음은 PENDING 으로 설정
-    int initialStatus = PENDING;
+    order->status = PENDING;
 
-    OCIBindByPos(stmthp, &bnd1, errhp, 1, order.stock_id, sizeof(order.stock_id), SQLT_STR,
+    OCIBindByPos(stmthp, &bnd1, errhp, 1, order->stock_id, sizeof(order->stock_id), SQLT_STR,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd2, errhp, 2, &order.price, sizeof(order.price), SQLT_INT,
+    OCIBindByPos(stmthp, &bnd2, errhp, 2, &order->price, sizeof(order->price), SQLT_INT,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd3, errhp, 3, &order.amount, sizeof(order.amount), SQLT_INT,
+    OCIBindByPos(stmthp, &bnd3, errhp, 3, &order->amount, sizeof(order->amount), SQLT_INT,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd4, errhp, 4, &order.type, sizeof(order.type), SQLT_INT,
+    OCIBindByPos(stmthp, &bnd4, errhp, 4, &order->type, sizeof(order->type), SQLT_INT,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd5, errhp, 5, &initialStatus, sizeof(initialStatus), SQLT_INT,
+    OCIBindByPos(stmthp, &bnd5, errhp, 5, &order->status, sizeof(order->status), SQLT_INT,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd6, errhp, 6, &order.account_id, sizeof(order.account_id), SQLT_INT,
+    OCIBindByPos(stmthp, &bnd6, errhp, 6, &order->account_id, sizeof(order->account_id), SQLT_INT,
+        NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
+    OCIBindByPos(stmthp, &bnd7, errhp, 7, &order->order_id, sizeof(order->order_id), SQLT_INT,
         NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
 
     if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL,
@@ -43,8 +47,24 @@ void add_order(const char* csv) {
         check_error(errhp);
     }
     else {
-        printf("데이터 삽입 완료!\n");
+        //printf("데이터 삽입 완료!\n");
+        print_order(order);
     }
+
+    return 1;
+
+}
+
+void print_order(const StockOrder* order) {
+    char status[STATUS_BUF];
+    char created_at[CREATED_AT_BUF];
+
+    strcpy(status, order_status_to_string(order->status));
+    tm_to_string(&order->created_at, created_at);
+
+    printf("주문 ID: %5d, 주식 코드: %8s, 가격: %8d, 수량: %4d, 주문 상태: %10s, 계좌 ID : %4d, 주문 일자 : %s\n",
+        order->order_id, order->stock_id, order->price, order->amount,
+        status, order->account_id, created_at);
 }
 
 void print_orders(StockOrder* order_arr, int count) {
@@ -461,7 +481,55 @@ void update_order_status(int order_id, OrderStatus status) {
         printf("데이터 수정 완료!\n");
     }
 }
+int handle_client_order(const char* csv) {
+    StockOrder order;
+    int abnormal_order = 0;
+    if (csv_string_to_order(csv, &order) != 0) {
+        printf("주문 파싱 실패\n");
+        return;
+    };
+    if (add_order(&order) == 0) return;
 
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    if (!detect_stock_amount(&order)) {
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+        printf("\n[이상 탐지] 종목 거래량 이상\n");
+        printf("→ 특정 종목의 당일 거래량이 과거 평균 대비 비정상적으로 높거나 낮습니다.\n\n");
+
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        abnormal_order = 1;
+    }
+    else if (!detect_account_amount(&order)) {
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+        printf("\n[이상 탐지] 계좌 거래량 이상\n");
+        printf("→ 특정 계좌의 당일 거래량이 전체 대비 비정상적으로 많거나 적습니다.\n\n");
+
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        abnormal_order = 1;
+    }
+    else if (!detect_wash_sale(&order)) {
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+        printf("\n[이상 탐지] 고빈도 주문 이상\n");
+        printf("→ 특정 계좌에서 비정상적으로 반복적인 주문 활동이 감지되었습니다.\n\n");
+
+        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+        abnormal_order = 1;
+    }
+
+    if (abnormal_order) {
+        update_account_status(order.account_id, ACCOUNT_SUSPENDED);
+        update_order_status(order.order_id, CANCELED);
+        // insert 구현 필요        
+    }
+    else {
+        update_order_status(order.order_id, MATCHED);
+        // insert 구현 필요
+    }
+}
 
 void handle_order() {
     StockOrder* order_arr = NULL;
@@ -581,7 +649,6 @@ void order_to_csv_string(const StockOrder* order, char* buffer, size_t bufsize) 
         timebuf);
 }
 
-
 OrderType parse_order_type(const char* str) {
     return strcmp(str, "BUY") == 0 ? BID : ASK;
 }
@@ -609,14 +676,16 @@ int csv_string_to_order(const char* csv, StockOrder* order) {
     if (i < ORDER_TOKEN) return -1;  // 파싱 실패
 
     strncpy(order->stock_id, tokens[0], sizeof(order->stock_id));
+    order->stock_id[sizeof(order->stock_id) - 1] = '\0';
     order->price = atoi(tokens[1]);
     order->amount = atoi(tokens[2]);
     order->type = parse_order_type(tokens[3]);
     order->account_id = atoi(tokens[4]);
-    order->stock_id[sizeof(order->stock_id) - 1] = '\0';
-
-    printf("stock_id: %s\n", order->stock_id);;
-
-
+    time_t now = time(NULL);
+    struct tm* t = localtime(&now);
+    if (t) {
+        order->created_at = *t;
+    }
+    printf("stock_id: %s\n", order->stock_id);
     return 0;
 }
