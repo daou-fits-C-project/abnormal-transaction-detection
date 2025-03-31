@@ -20,3 +20,5 @@ int detect_stock_amount(StockOrder*);
 int detect_account_amount(StockOrder*);
 int detect_wash_sale(StockOrder*);
 void report_FDS();
+void export_to_CSV(AbnormalTransaction*, int);
+void export_to_HTML(AbnormalTransaction*, int);

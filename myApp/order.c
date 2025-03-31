@@ -9,6 +9,7 @@
 #include "util.h"
 #include "fds.h"
 #include "account.h"
+#include "transaction.h"
 
 
 int add_order(StockOrder *order) {
@@ -478,7 +479,7 @@ void update_order_status(int order_id, OrderStatus status) {
         check_error(errhp);
     }
     else {
-        printf("데이터 수정 완료!\n");
+        //printf("데이터 수정 완료!\n");
     }
 }
 int handle_client_order(const char* csv) {
@@ -488,7 +489,10 @@ int handle_client_order(const char* csv) {
         printf("주문 파싱 실패\n");
         return;
     };
-    if (add_order(&order) == 0) return;
+    if (add_order(&order) == 0) { 
+        printf("주문 실패\n");
+        return; 
+    }
 
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -508,7 +512,7 @@ int handle_client_order(const char* csv) {
         printf("→ 특정 계좌의 당일 거래량이 전체 대비 비정상적으로 많거나 적습니다.\n\n");
 
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        abnormal_order = 1;
+        abnormal_order = 2;
     }
     else if (!detect_wash_sale(&order)) {
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -517,17 +521,19 @@ int handle_client_order(const char* csv) {
         printf("→ 특정 계좌에서 비정상적으로 반복적인 주문 활동이 감지되었습니다.\n\n");
 
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        abnormal_order = 1;
+        abnormal_order = 3;
     }
 
     if (abnormal_order) {
         update_account_status(order.account_id, ACCOUNT_SUSPENDED);
         update_order_status(order.order_id, CANCELED);
-        // insert 구현 필요        
+        // insert 구현 필요 
+         add_abnormal_transaction(&order, abnormal_order);      
     }
     else {
         update_order_status(order.order_id, MATCHED);
         // insert 구현 필요
+        add_normal_transaction(&order);
     }
 }
 
@@ -686,6 +692,6 @@ int csv_string_to_order(const char* csv, StockOrder* order) {
     if (t) {
         order->created_at = *t;
     }
-    printf("stock_id: %s\n", order->stock_id);
+    //printf("stock_id: %s\n", order->stock_id);
     return 0;
 }
