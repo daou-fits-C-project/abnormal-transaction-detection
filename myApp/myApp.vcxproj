@@ -161,6 +161,7 @@
     <None Include="sql\fbs_queries.json" />
     <None Include="sql\order_queries.json" />
     <None Include="sql\customer_queries.json" />
+    <None Include="sql\transaction_queries.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
