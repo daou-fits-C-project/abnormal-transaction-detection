@@ -211,7 +211,7 @@ void update_account_status(int account_id, AccountStatus status) {
         check_error(errhp);
     }
     else {
-        printf("데이터 수정 완료!\n");
+        //printf("데이터 수정 완료!\n");
     }
 }
 
