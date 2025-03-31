@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <windows.h>
 #include "manage.h"
 #include "order.h"
 #include "transaction.h"
 #include "account.h"
+
+volatile int g_stopMonitoring = 0;
 
 void run_manage() {
 	int choice;
@@ -99,4 +102,21 @@ void to_be_continue() {
 	do {
 		key = _getch();
 	} while (key != 0x0d);
+}
+
+// 실시간 모니터링 함수 (별도 스레드에서 실행)
+unsigned __stdcall real_time_monitoring(void* arg) {
+	while (!g_stopMonitoring) {
+		
+		Sleep(500);
+
+		if (_kbhit()) {
+			char key = _getch();
+			if (key == 'q' || key == 27) {
+				g_stopMonitoring = 1;
+			}
+		}
+	}
+
+	return 0;
 }
