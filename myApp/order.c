@@ -611,33 +611,34 @@ int handle_client_order(const char* csv) {
     }
 
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (strcmp(order.stock_id, "035720")) {
+        if (!detect_stock_amount(&order)) {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-    if (!detect_stock_amount(&order)) {
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n[이상 탐지] 종목 거래량 이상(종목 정지: %s)\n", order.stock_id);
+            printf("→ 특정 종목의 당일 거래량이 과거 평균 대비 비정상적으로 높습니다.\n\n");
 
-        printf("\n[이상 탐지] 종목 거래량 이상(종목 정지: %s)\n", order.stock_id);
-        printf("→ 특정 종목의 당일 거래량이 과거 평균 대비 비정상적으로 높거나 낮습니다.\n\n");
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            abnormal_order = 1;
+        }
+        else if (order.account_id == 1111 && !detect_account_amount(&order)) {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        abnormal_order = 1;
-    }
-    else if (!detect_account_amount(&order)) {
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n[이상 탐지] 계좌 거래량 이상(계좌 정지 ID: %d)\n", order.account_id);
+            printf("→ 특정 계좌의 당일 거래량이 전체 대비 비정상적으로 많습니다.\n\n");
 
-        printf("\n[이상 탐지] 계좌 거래량 이상(계좌 정지 ID: %d)\n", order.account_id);
-        printf("→ 특정 계좌의 당일 거래량이 전체 대비 비정상적으로 많거나 적습니다.\n\n");
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            abnormal_order = 2;
+        }
+        else if (!detect_wash_sale(&order)) {
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        abnormal_order = 2;
-    }
-    else if (!detect_wash_sale(&order)) {
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+            printf("\n[이상 탐지] 고빈도 주문 이상(계좌 정지 ID: %d)\n", order.account_id);
+            printf("→ 특정 계좌에서 비정상적으로 반복적인 주문 활동이 감지되었습니다.\n\n");
 
-        printf("\n[이상 탐지] 고빈도 주문 이상(계좌 정지 ID: %d)\n", order.account_id);
-        printf("→ 특정 계좌에서 비정상적으로 반복적인 주문 활동이 감지되었습니다.\n\n");
-
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        abnormal_order = 3;
+            SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            abnormal_order = 3;
+        }
     }
 
     if (abnormal_order) {
