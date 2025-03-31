@@ -7,6 +7,7 @@
 #include "order.h"
 #include "transaction.h"
 #include "account.h"
+#include "fds.h"
 
 volatile int g_stopMonitoring = 0;
 
@@ -26,7 +27,7 @@ void run_manage() {
 		printf("-------------------------------------\n");
 		printf("|  3. 주문 내역 관리                |\n");
 		printf("-------------------------------------\n");
-		printf("|  4. 이상 거래 분석 보고서         |\n");
+		printf("|  4. 이상 거래 분석 보고서 생성    |\n");
 		printf("-------------------------------------\n");
 		printf("|  5. 종료                          |\n");
 		printf("-------------------------------------\n");
@@ -37,7 +38,7 @@ void run_manage() {
 		case 1: select_all_with_accounts(); to_be_continue(); break;
 		case 2: handle_transaction_log(); break;
 		case 3: handle_order(); break;
-		case 4: abnormal_analysis_report(); break;
+		case 4: report_FDS(); break;
 		case 5: return;
 		default: printf("올바른 메뉴를 선택하세요\n"); break;
 		}
@@ -90,10 +91,6 @@ void handle_transaction_log() {
 		}
 		system("cls");
 	}
-}
-
-void abnormal_analysis_report() {
-
 }
 
 void to_be_continue() {
