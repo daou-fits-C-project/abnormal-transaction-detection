@@ -490,11 +490,11 @@ int handle_client_order(const char* csv) {
     int abnormal_order = 0;
     if (csv_string_to_order(csv, &order) != 0) {
         printf("주문 파싱 실패\n");
-        return;
+        return 0;
     };
     if (add_order(&order) == 0) { 
-        printf("주문 실패\n");
-        return; 
+        //printf("주문 실패\n");
+        return 0; 
     }
 
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -502,7 +502,7 @@ int handle_client_order(const char* csv) {
     if (!detect_stock_amount(&order)) {
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-        printf("\n[이상 탐지] 종목 거래량 이상\n");
+        printf("\n[이상 탐지] 종목 거래량 이상(종목 정지: %s)\n", order.stock_id);
         printf("→ 특정 종목의 당일 거래량이 과거 평균 대비 비정상적으로 높거나 낮습니다.\n\n");
 
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
@@ -511,7 +511,7 @@ int handle_client_order(const char* csv) {
     else if (!detect_account_amount(&order)) {
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-        printf("\n[이상 탐지] 계좌 거래량 이상\n");
+        printf("\n[이상 탐지] 계좌 거래량 이상(계좌 정지 ID: %d)\n", order.account_id);
         printf("→ 특정 계좌의 당일 거래량이 전체 대비 비정상적으로 많거나 적습니다.\n\n");
 
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
@@ -520,7 +520,7 @@ int handle_client_order(const char* csv) {
     else if (!detect_wash_sale(&order)) {
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 
-        printf("\n[이상 탐지] 고빈도 주문 이상\n");
+        printf("\n[이상 탐지] 고빈도 주문 이상(계좌 정지 ID: %d)\n", order.account_id);
         printf("→ 특정 계좌에서 비정상적으로 반복적인 주문 활동이 감지되었습니다.\n\n");
 
         SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
@@ -536,12 +536,14 @@ int handle_client_order(const char* csv) {
             update_account_status(order.account_id, ACCOUNT_SUSPENDED);
         }
         update_order_status(order.order_id, CANCELED);
-        add_abnormal_transaction(&order, abnormal_order);      
+        add_abnormal_transaction(&order, abnormal_order);  
+        return 0;
     }
     else {
         update_order_status(order.order_id, MATCHED);
         add_normal_transaction(&order);
     }
+    return 1;
 }
 
 void handle_order() {

@@ -5,20 +5,67 @@
 
 #pragma comment(lib, "ws2_32.lib")
 #define PORT 9000
-#define CLIENT_COUNT 10
+#define CLIENT_COUNT 4
 const char* random_order_type() {
     return (rand() % 2 == 0) ? "BUY" : "SELL";
 }
 
-void make_random_order_message(char* buffer, size_t bufsize, int client_id) {
+void  make_normal_order_msg(char* buffer, size_t bufsize, int client_id) {
+    const char* stock_id = "298000";                                         // 다우기술
+    int base_price = 21500;
+    int fluctuation = base_price * 0.1;                                      // 10% 변동: 2150원
+    int price = base_price - fluctuation + (rand() % (2 * fluctuation + 1)); // 19350 ~ 23650
+    //int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    int amount = 1;                                      // 10 ~ 90
+    const char* type = random_order_type();                                  // BUY or SELL
+    //int account_id = 1000 + client_id;
+    int account_id = 1091;
+
+    snprintf(buffer, bufsize, "%s,%d,%d,%s,%d",
+        stock_id, price, amount, type, account_id);
+}
+
+void  make_abnormal_order_msg_1(char* buffer, size_t bufsize, int client_id) {
+    const char* stock_id = "298000";                                         // 다우기술
+    int base_price = 21500;
+    int fluctuation = base_price * 0.1;                                      // 10% 변동: 2150원
+    int price = base_price - fluctuation + (rand() % (2 * fluctuation + 1)); // 19350 ~ 23650
+    //int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    int amount = 1;                                      // 10 ~ 90
+    const char* type = random_order_type();                                  // BUY or SELL
+    int account_id = 1000 + client_id;
+    //int account_id = 1102;
+
+    snprintf(buffer, bufsize, "%s,%d,%d,%s,%d",
+        stock_id, price, amount, type, account_id);
+}
+
+void make_abnormal_order_msg_2(char* buffer, size_t bufsize, int client_id) {
     const char* stock_id = "023590";                                         // 다우기술
     int base_price = 21500;
     int fluctuation = base_price * 0.1;                                      // 10% 변동: 2150원
     int price = base_price - fluctuation + (rand() % (2 * fluctuation + 1)); // 19350 ~ 23650
-    int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    //int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    int amount = 2000;                                      // 10 ~ 90
     const char* type = random_order_type();                                  // BUY or SELL
     //int account_id = 1000 + client_id;
-    int account_id = 1102;
+    int account_id = 1111;
+
+    snprintf(buffer, bufsize, "%s,%d,%d,%s,%d",
+        stock_id, price, amount, type, account_id);
+}
+
+
+void make_abnormal_order_msg_3(char* buffer, size_t bufsize, int client_id) {
+    const char* stock_id = "039490";                                         // 키움
+    int base_price = 21500;
+    int fluctuation = base_price * 0.1;                                      // 10% 변동: 2150원
+    int price = base_price - fluctuation + (rand() % (2 * fluctuation + 1)); // 19350 ~ 23650
+    //int amount = (rand() % 9 + 1) * 10;                                      // 10 ~ 90
+    int amount = 1;                                      // 10 ~ 90
+    const char* type = random_order_type();                                  // BUY or SELL
+    //int account_id = 1000 + client_id;
+    int account_id = 1055;
 
     snprintf(buffer, bufsize, "%s,%d,%d,%s,%d",
         stock_id, price, amount, type, account_id);
@@ -60,7 +107,10 @@ DWORD WINAPI client_thread(LPVOID arg) {
     char message[256];
     /*snprintf(message, sizeof(message), "%s,%d,%d,%s,%d",
         stock_id, price, amount, type, account_id);*/
-    make_random_order_message(message, sizeof(message), client_id);
+    make_abnormal_order_msg_1(message, sizeof(message), client_id);
+    //make_abnormal_order_msg_2(message, sizeof(message), client_id);
+    //make_abnormal_order_msg_3(message, sizeof(message), client_id);
+    //make_normal_order_msg(message, sizeof(message), client_id);
 
     send(sock, message, (int)strlen(message), 0);
     printf("[Client %d] 주문 전송: %s", client_id, message);
@@ -85,9 +135,9 @@ int main() {
 
     // 멀티 클라이언트 생성
     for (int i = 0; i < CLIENT_COUNT; i++) {
-        client_ids[i] = i + 1;
+        client_ids[i] = i;
         threads[i] = CreateThread(NULL, 0, client_thread, &client_ids[i], 0, NULL);
-        Sleep(50);  // 연결 간 약간의 시간차 (너무 몰리면 서버가 accept 처리 못함)
+        Sleep(50);  
     }
 
     WaitForMultipleObjects(CLIENT_COUNT, threads, TRUE, INFINITE);
