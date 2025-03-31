@@ -1,0 +1,4 @@
+{
+  "getStatusByStockId": "SELECT status FROM stock WHERE stock_id = :1",
+  "updateStatusById": "UPDATE stock SET status = :1 WHERE stock_id = :2"
+}
