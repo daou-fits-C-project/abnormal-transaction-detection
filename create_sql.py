@@ -1,7 +1,7 @@
 import yfinance as yf
 import pandas as pd
 
-ticker = '039490.KQ'
+ticker = '023590.KQ'
 
 stock = yf.Ticker(ticker)
 df = stock.history(period="5y", interval="1d").reset_index()

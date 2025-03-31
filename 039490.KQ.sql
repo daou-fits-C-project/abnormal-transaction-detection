@@ -1,6 +1,3 @@
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (55676, 54924, 56761, 54507, 94322, '039490', TO_DATE('2020-03-26', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (57178, 56093, 57345, 54006, 166026, '039490', TO_DATE('2020-03-27', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (55008, 56594, 56928, 54423, 80497, '039490', TO_DATE('2020-03-30', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (57178, 58430, 58597, 56928, 142186, '039490', TO_DATE('2020-03-31', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (58430, 56093, 58764, 55342, 130208, '039490', TO_DATE('2020-04-01', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (55926, 55926, 56343, 54173, 85834, '039490', TO_DATE('2020-04-02', 'YYYY-MM-DD'));
@@ -74,15 +71,15 @@ INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amo
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (72203, 77462, 77462, 71368, 202359, '039490', TO_DATE('2020-07-13', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (75876, 77545, 77629, 75375, 91320, '039490', TO_DATE('2020-07-14', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (79799, 78547, 81552, 77796, 151640, '039490', TO_DATE('2020-07-15', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (79716, 78630, 80968, 78380, 92926, '039490', TO_DATE('2020-07-16', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (79716, 78631, 80968, 78380, 92926, '039490', TO_DATE('2020-07-16', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (79131, 85976, 87228, 78881, 224420, '039490', TO_DATE('2020-07-17', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (85976, 82387, 86393, 81802, 159468, '039490', TO_DATE('2020-07-20', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (83889, 83889, 85559, 82220, 148634, '039490', TO_DATE('2020-07-21', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (83889, 81636, 85559, 80884, 117106, '039490', TO_DATE('2020-07-22', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (83889, 81635, 85559, 80884, 117106, '039490', TO_DATE('2020-07-22', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (81719, 80968, 82387, 79048, 130059, '039490', TO_DATE('2020-07-23', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (80133, 79883, 81302, 78714, 86296, '039490', TO_DATE('2020-07-24', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (79382, 80634, 83889, 79382, 112538, '039490', TO_DATE('2020-07-27', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (81385, 81636, 82554, 81135, 97102, '039490', TO_DATE('2020-07-28', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (81385, 81635, 82554, 81135, 97102, '039490', TO_DATE('2020-07-28', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (82136, 80884, 82470, 80801, 51993, '039490', TO_DATE('2020-07-29', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (82136, 81135, 82136, 80717, 54047, '039490', TO_DATE('2020-07-30', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (80968, 80133, 81552, 80133, 45509, '039490', TO_DATE('2020-07-31', 'YYYY-MM-DD'));
@@ -103,7 +100,7 @@ INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amo
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (87646, 87646, 89732, 85141, 88634, '039490', TO_DATE('2020-08-24', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (89732, 93071, 93489, 88898, 129447, '039490', TO_DATE('2020-08-25', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (94323, 93071, 94323, 90567, 101464, '039490', TO_DATE('2020-08-26', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (92236, 90567, 93489, 90150, 74892, '039490', TO_DATE('2020-08-27', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (92237, 90567, 93489, 90150, 74892, '039490', TO_DATE('2020-08-27', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (93489, 90150, 93906, 89315, 99012, '039490', TO_DATE('2020-08-28', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (91819, 90984, 92654, 88898, 83943, '039490', TO_DATE('2020-08-31', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (91819, 93489, 94323, 90567, 127170, '039490', TO_DATE('2020-09-01', 'YYYY-MM-DD'));
@@ -217,7 +214,7 @@ INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amo
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (133900, 134755, 137750, 133472, 287018, '039490', TO_DATE('2021-02-09', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (132616, 128338, 133044, 126199, 411313, '039490', TO_DATE('2021-02-10', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (129194, 127911, 129622, 127483, 176568, '039490', TO_DATE('2021-02-15', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (127910, 128766, 129194, 127055, 143595, '039490', TO_DATE('2021-02-16', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (127911, 128766, 129194, 127055, 143595, '039490', TO_DATE('2021-02-16', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (128338, 125772, 128766, 125772, 151246, '039490', TO_DATE('2021-02-17', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (125772, 122777, 125772, 122349, 177572, '039490', TO_DATE('2021-02-18', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (122777, 123205, 126199, 121494, 240586, '039490', TO_DATE('2021-02-19', 'YYYY-MM-DD'));
@@ -230,7 +227,7 @@ INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amo
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (109943, 110799, 111654, 108660, 151630, '039490', TO_DATE('2021-03-03', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (109087, 106949, 109515, 106521, 213710, '039490', TO_DATE('2021-03-04', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (105237, 105665, 106093, 100532, 268312, '039490', TO_DATE('2021-03-05', 'YYYY-MM-DD'));
-INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (106949, 101815, 107376, 101815, 159765, '039490', TO_DATE('2021-03-08', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (106948, 101815, 107376, 101815, 159765, '039490', TO_DATE('2021-03-08', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (101815, 101815, 103526, 97965, 288031, '039490', TO_DATE('2021-03-09', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (103526, 100532, 104382, 99676, 152117, '039490', TO_DATE('2021-03-10', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (101387, 106521, 107804, 100959, 320108, '039490', TO_DATE('2021-03-11', 'YYYY-MM-DD'));
@@ -1223,4 +1220,7 @@ INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amo
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (127100, 132400, 133600, 127100, 182033, '039490', TO_DATE('2025-03-21', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (131100, 131200, 133400, 130900, 90637, '039490', TO_DATE('2025-03-24', 'YYYY-MM-DD'));
 INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (130600, 130700, 132800, 127000, 82780, '039490', TO_DATE('2025-03-25', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (130800, 133400, 136100, 130000, 150076, '039490', TO_DATE('2025-03-26', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (132000, 133100, 135000, 131500, 92676, '039490', TO_DATE('2025-03-27', 'YYYY-MM-DD'));
+INSERT INTO transaction_log (open_price, close_price, high_price, low_price, amount, stock_id, trade_date) VALUES (133100, 129700, 133900, 129200, 63546, '039490', TO_DATE('2025-03-28', 'YYYY-MM-DD'));
 commit;
