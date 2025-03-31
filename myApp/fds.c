@@ -1,18 +1,19 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "fds.h"
 #include "db.h"
+#include "util.h"
 
 #define DEBUG
 
-// ¼³Á¤ º¯¼ö
-int month = 10;                   // °Å·¡·® °è»ê ±â°£
-double stock_threshold = 0.74;    // 77% ½Å·Úµµ¿¡ µû¸¥ Z Score
-double ratio = 0.3;               // Æ¯Á¤ °èÁÂ °Å·¡·® ºñÀ²
-double time_interval = 1800;      // °ú°Å ÁÖ¹® ³»¿ª °£°İ
-double lambda = 2;                // ´ÜÀ§ °£°İ µ¿¾ÈÀÇ ÁÖ¹® È½¼ö
-double lambda_threshold = 1.645;  // 95% ½Å·Úµµ¿¡ µû¸¥ Z Score
+// ì„¤ì • ë³€ìˆ˜
+int month = 10;                   // ê±°ë˜ëŸ‰ ê³„ì‚° ê¸°ê°„
+double stock_threshold = 0.74;    // 77% ì‹ ë¢°ë„ì— ë”°ë¥¸ Z Score
+double ratio = 0.3;               // íŠ¹ì • ê³„ì¢Œ ê±°ë˜ëŸ‰ ë¹„ìœ¨
+double time_interval = 1800;      // ê³¼ê±° ì£¼ë¬¸ ë‚´ì—­ ê°„ê²©
+double lambda = 2;                // ë‹¨ìœ„ ê°„ê²© ë™ì•ˆì˜ ì£¼ë¬¸ íšŸìˆ˜
+double lambda_threshold = 1.645;  // 95% ì‹ ë¢°ë„ì— ë”°ë¥¸ Z Score
 
 static OCIStmt* stmthp;
 static OCIDefine* def1 = NULL, * def2 = NULL, * def3 = NULL, * def4 = NULL, * def5 = NULL, * def6 = NULL, * def7 = NULL, * def8 = NULL, * def9 = NULL;
@@ -21,9 +22,9 @@ static OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL;
 sword status;
 
 int detect_stock_amount(StockOrder* stock_order) {
-    // °ú°Å 30ÀÏ µ¿¾ÈÀÇ °Å·¡·®
+    // ê³¼ê±° 30ì¼ ë™ì•ˆì˜ ê±°ë˜ëŸ‰
     double avg_amount, std_amount;
-    // ´çÀÏ ÃÑ °Å·¡·®
+    // ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰
     double today_amount;
 
     OCIDate today;
@@ -32,7 +33,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     today.OCIDateMM = stock_order->created_at.tm_mon + 1;
     today.OCIDateDD = stock_order->created_at.tm_mday;
 
-    // °ú°Å 30ÀÏ µ¿¾ÈÀÇ °Å·¡·® SQL
+    // ê³¼ê±° 30ì¼ ë™ì•ˆì˜ ê±°ë˜ëŸ‰ SQL
     char* z_score_sql = "SELECT AVG(amount), STDDEV(amount) FROM transaction_log WHERE stock_id = :1 AND trade_date BETWEEN TRUNC(:2 - :3) AND TRUNC(:2) AND amount > 0";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
@@ -48,7 +49,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) check_error(errhp);
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
-    // ´çÀÏ ÃÑ °Å·¡·®
+    // ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰
     char* today_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE stock_id = :1 AND TRUNC(created_at) = TRUNC(:2)";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
@@ -65,8 +66,8 @@ int detect_stock_amount(StockOrder* stock_order) {
     double z_score = (today_amount + stock_order->amount - avg_amount) / std_amount;
 
 #ifdef DEBUG
-    printf("°ú°Å %dÀÏ µ¿¾ÈÀÇ °Å·¡·® Æò±Õ: %.2lf, Ç¥ÁØÆíÂ÷: %.2lf\n", month, avg_amount, std_amount);
-    printf("´çÀÏ ÃÑ °Å·¡·® : %.2lf\n", today_amount + stock_order->amount);
+    printf("ê³¼ê±° %dì¼ ë™ì•ˆì˜ ê±°ë˜ëŸ‰ í‰ê· : %.2lf, í‘œì¤€í¸ì°¨: %.2lf\n", month, avg_amount, std_amount);
+    printf("ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰ : %.2lf\n", today_amount + stock_order->amount);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
 
@@ -75,9 +76,9 @@ int detect_stock_amount(StockOrder* stock_order) {
 }
 
 int detect_account_amount(StockOrder* stock_order) {
-    // ÇØ´ç °èÁÂÀÇ °Å·¡·®
+    // í•´ë‹¹ ê³„ì¢Œì˜ ê±°ë˜ëŸ‰
     int customer_amount;
-    // ´çÀÏ ÃÑ °Å·¡·®
+    // ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰
     int total_amount;
 
     OCIDate today;
@@ -86,7 +87,7 @@ int detect_account_amount(StockOrder* stock_order) {
     today.OCIDateMM = stock_order->created_at.tm_mon + 1;
     today.OCIDateDD = stock_order->created_at.tm_mday;
 
-    // ÇØ´ç °èÁÂÀÇ °Å·¡·® SQL
+    // í•´ë‹¹ ê³„ì¢Œì˜ ê±°ë˜ëŸ‰ SQL
     char* customer_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE account_id = :1 AND stock_id = :2 AND TRUNC(created_at) = TRUNC(:3)";
     
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
@@ -101,7 +102,7 @@ int detect_account_amount(StockOrder* stock_order) {
     if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) check_error(errhp);
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
-    // ´çÀÏ ÃÑ °Å·¡·®
+    // ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰
     char* today_sql = "SELECT NVL(SUM(amount), 0) FROM normal_transaction WHERE stock_id = :1 AND TRUNC(created_at) = TRUNC(:2)";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
@@ -118,8 +119,8 @@ int detect_account_amount(StockOrder* stock_order) {
     double ratio_amount = (double)(customer_amount + stock_order->amount) / (double)(total_amount + stock_order->amount);
 
 #ifdef DEBUG
-    printf("°èÁÂ: %d, Á¾¸ñ: %s\n", stock_order->account_id, stock_order->stock_id);
-    printf("°èÁÂ °Å·¡·® : %d, ´çÀÏ ÃÑ °Å·¡·®: %d\n", customer_amount + stock_order->amount, total_amount + stock_order->amount);
+    printf("ê³„ì¢Œ: %d, ì¢…ëª©: %s\n", stock_order->account_id, stock_order->stock_id);
+    printf("ê³„ì¢Œ ê±°ë˜ëŸ‰ : %d, ë‹¹ì¼ ì´ ê±°ë˜ëŸ‰: %d\n", customer_amount + stock_order->amount, total_amount + stock_order->amount);
     printf("Ratio: %.2lf\n", ratio_amount);
 #endif
 
@@ -131,10 +132,10 @@ int detect_wash_sale(StockOrder* stock_order) {
     char start_time[20], end_time[20];  // "YYYY-MM-DD HH:MM:SS"
     int count = 0;
 
-    // ÇØ´ç °èÁÂÀÇ 5ºĞ ÁÖ¹® ¼ö Äõ¸®
+    // í•´ë‹¹ ê³„ì¢Œì˜ 5ë¶„ ì£¼ë¬¸ ìˆ˜ ì¿¼ë¦¬
     char* order_sql = "SELECT count(*) FROM stock_order WHERE account_id = :1 AND stock_id = :2 AND created_at BETWEEN TO_TIMESTAMP(:3, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(:4, 'YYYY-MM-DD HH24:MI:SS')";
 
-    // time_inverval ÃÊ Àü °è»ê
+    // time_inverval ì´ˆ ì „ ê³„ì‚°
     strftime(end_time, sizeof(end_time), "%Y-%m-%d %H:%M:%S", &stock_order->created_at);
     time_t past_time = mktime(&stock_order->created_at) - time_interval;
     struct tm* past_tm = localtime(&past_time);
@@ -157,7 +158,7 @@ int detect_wash_sale(StockOrder* stock_order) {
 
 #ifdef DEBUG
     printf("%s ~ %s\n", start_time, end_time);
-    printf("%.lfÃÊ µ¿¾ÈÀÇ ÁÖ¹® È½¼ö: %d\n", time_interval, count);
+    printf("%.lfì´ˆ ë™ì•ˆì˜ ì£¼ë¬¸ íšŸìˆ˜: %d\n", time_interval, count);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
 
@@ -166,16 +167,12 @@ int detect_wash_sale(StockOrder* stock_order) {
 }
 
 void report_FDS() {
-    FILE* file = fopen("FDS_report.csv", "w");
-    if (!file) {
-        printf("ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù.\n");
-        return 1;
-    }
-    fprintf(file, "order_id,account_id,stock_id,price,amount,type,type_name,description,created_at\n");
+    AbnormalTransaction records[100];
+    char created_at[100];
+    int index = 0;
 
-    char created_at[20];
+    char* select_sql = "SELECT at.order_id, at.account_id, at.stock_id, at.price, at.amount, at.type, dt.type_name, dt.description, to_char(at.created_at, 'YYYY/MM/DD HH24:MI:SS') FROM abnormal_transaction at JOIN detection_type dt ON at.detection_id = dt.detection_id";
 
-    char* select_sql = "SELECT at.order_id, at.account_id, at.stock_id, at.price, at.amount, at.type, dt.type_name, dt.description FROM abnormal_transaction at JOIN detection_type dt ON at.detection_id = dt.detection_id";
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
     OCIStmtPrepare(stmthp, errhp, (text*)select_sql, strlen(select_sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
 
@@ -190,25 +187,78 @@ void report_FDS() {
     OCIDefineByPos(stmthp, &def6, errhp, 6, &abnormal_transaction.type, sizeof(abnormal_transaction.type), SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
     OCIDefineByPos(stmthp, &def7, errhp, 7, abnormal_transaction.type_name, sizeof(abnormal_transaction.type_name), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
     OCIDefineByPos(stmthp, &def8, errhp, 8, abnormal_transaction.description, sizeof(abnormal_transaction.description), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
-    //OCIDefineByPos(stmthp, &def9, errhp, 9, created_at, sizeof(created_at), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def9, errhp, 9, created_at, sizeof(created_at), SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
 
     int flag = 0;
     while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT)) == OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
-        fprintf(file, "%d,%d,%s,%d,%d,%d,%s,%s\n",
-            abnormal_transaction.order_id,
-            abnormal_transaction.account_id,
-            abnormal_transaction.stock_id,
-            abnormal_transaction.price,
-            abnormal_transaction.amount,
-            abnormal_transaction.type,
-            abnormal_transaction.type_name,
-            abnormal_transaction.description
-            //created_at
-        );
+        datetime_to_tm(created_at, &abnormal_transaction.created_at);
+        records[index++] = abnormal_transaction;
         flag = 1;
     }
 
-    if (!flag) printf("ÀÌ»ó °Å·¡ ³»¿ªÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n");
+    if (flag) {
+        export_to_CSV(records, index);
+        export_to_HTML(records, index);
+    }
+    else {
+        printf("ì´ìƒ ê±°ë˜ ë‚´ì—­ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n");
+    }
+}
+
+void export_to_CSV(AbnormalTransaction* abnormal_records, int size) {
+    FILE* file = fopen("FDS_report.csv", "w");
+    if (!file) {
+        printf("CSV íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n");
+        return 1;
+    }
+
+    fprintf(file, "order_id,account_id,stock_id,price,amount,type,type_name,description,created_at\n");
+    for (int i = 0; i < size; i++) {
+        fprintf(file, "%d,%d,%s,%d,%d,%s,%s,%s,%04d/%02d/%02d %02d:%02d:%02d\n",
+            abnormal_records[i].order_id,
+            abnormal_records[i].account_id,
+            abnormal_records[i].stock_id,
+            abnormal_records[i].price,
+            abnormal_records[i].amount,
+            abnormal_records[i].type ? "ë§¤ìˆ˜" : "ë§¤ë„",
+            abnormal_records[i].type_name,
+            abnormal_records[i].description,
+            abnormal_records[i].created_at.tm_year + 1900, abnormal_records[i].created_at.tm_mon + 1, abnormal_records[i].created_at.tm_mday,
+            abnormal_records[i].created_at.tm_hour, abnormal_records[i].created_at.tm_min, abnormal_records[i].created_at.tm_sec
+        );
+    }
 
     fclose(file);
+}
+
+void export_to_HTML(AbnormalTransaction* abnormal_records, int size) {
+    FILE* file = fopen("FDS_report.html", "w");
+    if (!file) {
+        printf("HTML íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\n");
+        return;
+    }
+
+    fprintf(file, "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>ì´ìƒ ê±°ë˜ ë¶„ì„ ë³´ê³ ì„œ</title></head><body>");
+    fprintf(file, "<h2>ì´ìƒ ê±°ë˜ ë¶„ì„ ë³´ê³ ì„œ</h2>");
+    fprintf(file, "<table><tr><th>order_id</th><th>account_id</th><th>stock_id</th><th>price</th><th>amount</th><th>type</th><th>type_name</th><th>description</th><th>created_at</th></tr>");
+
+    for (int i = 0; i < size; i++) {
+        fprintf(file, "<tr><td>%d</td><td>%d</td><td>%s</td><td>%d</td><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%04d/%02d/%02d %02d:%02d:%02d</td></tr>",
+            abnormal_records[i].order_id,
+            abnormal_records[i].account_id,
+            abnormal_records[i].stock_id,
+            abnormal_records[i].price,
+            abnormal_records[i].amount,
+            abnormal_records[i].type ? "ë§¤ìˆ˜" : "ë§¤ë„",
+            abnormal_records[i].type_name,
+            abnormal_records[i].description,
+            abnormal_records[i].created_at.tm_year + 1900, abnormal_records[i].created_at.tm_mon + 1, abnormal_records[i].created_at.tm_mday,
+            abnormal_records[i].created_at.tm_hour, abnormal_records[i].created_at.tm_min, abnormal_records[i].created_at.tm_sec
+        );
+    }
+
+    fprintf(file, "</table></body></html>");
+    fclose(file);
+
+    system("start FDS_report.html");
 }
