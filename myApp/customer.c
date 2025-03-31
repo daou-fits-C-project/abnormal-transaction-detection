@@ -44,7 +44,7 @@ void login() {
 		else {
 			// SQL 실행 결과
 			sword status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT);
-
+			system("cls");
 			if (status == OCI_NO_DATA) {
 				printf("해당 사용자가 존재하지 않습니다.\n");
 			}

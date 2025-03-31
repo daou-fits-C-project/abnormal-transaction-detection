@@ -4,18 +4,23 @@
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <conio.h>
 #include "order.h"
 #include "db.h"
 #include "util.h"
 #include "fds.h"
 #include "account.h"
 #include "transaction.h"
+#include "stock.h"
+#include "manage.h"
 
 
 int add_order(StockOrder *order) {
     Account acc;
+    Stock stock;
     get_account_by_id(&acc, order->account_id);
-    if (acc.status != ACCOUNT_ACTIVE) return 0;
+    get_stock_status(&stock, order->stock_id);
+    if (acc.status != ACCOUNT_ACTIVE || stock.status != STOCK_ACTIVE) return 0;
 
     OCIStmt* stmthp;
     OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL, * bnd5 = NULL, * bnd6 = NULL, * bnd7 = NULL;
@@ -63,9 +68,22 @@ void print_order(const StockOrder* order) {
     strcpy(status, order_status_to_string(order->status));
     tm_to_string(&order->created_at, created_at);
 
-    printf("주문 ID: %5d, 주식 코드: %8s, 가격: %8d, 수량: %4d, 주문 상태: %10s, 계좌 ID : %4d, 주문 일자 : %s\n",
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    // 현재 콘솔 속성을 저장
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
+    WORD originalAttr = csbi.wAttributes;
+
+    WORD attributes = (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE) | (order->type == BID ? BACKGROUND_GREEN : BACKGROUND_BLUE);
+    // 속성 변경: attributes에는 원하는 전경/배경 색 조합을 지정
+    SetConsoleTextAttribute(hConsole, attributes);
+
+    printf(">> [%s] | 주문 ID: %5d | 주식 코드: %8s | 가격: %8d | 수량: %4d | 주문 상태: %10s | 계좌 ID : %4d | 주문 일자 : %s |\n",
+        order_type_to_string(order->type),
         order->order_id, order->stock_id, order->price, order->amount,
         status, order->account_id, created_at);
+
+    SetConsoleTextAttribute(hConsole, originalAttr);
 }
 
 void print_orders(StockOrder* order_arr, int count) {
@@ -213,6 +231,43 @@ int get_order_count_by_status(OrderStatus orderStatus) {
     if ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
         == OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
         printf("\n데이터 개수 조회 결과: %d\n", count);
+    }
+
+    OCIHandleFree(stmthp, OCI_HTYPE_STMT);
+
+    return count;
+}
+
+int get_recent_order_count() {
+    OCIStmt* stmthp;
+    sword status;
+    OCIBind* bnd1 = NULL;
+    OCIDefine* def1 = NULL;
+    int count = -1, max_result = 50;
+    char* sql = get_sql("sql/order_queries.json", "getRecentCount");
+    // SQL문 핸들을 생성
+    OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
+    OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX,
+        OCI_DEFAULT);
+    OCIBindByPos(stmthp, &bnd1, errhp, 1, &max_result, sizeof(max_result), SQLT_INT,
+        NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
+    free(sql);
+
+    // 2. 쿼리 실행
+    status = OCIStmtExecute(svchp, stmthp, errhp, 0, 0, NULL, NULL, OCI_DEFAULT);
+
+    if (status != OCI_SUCCESS) {
+        check_error(errhp);
+    }
+
+    // 3. 데이터 바인딩 (결과를 받을 변수)
+    OCIDefineByPos(stmthp, &def1, errhp, 1, &count, sizeof(count), SQLT_INT, NULL, NULL,
+        NULL, OCI_DEFAULT);
+
+    // 4. 데이터 가져오기 
+    if ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
+        == OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
+        //printf("\n데이터 개수 조회 결과: %d\n", count);
     }
 
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
@@ -456,6 +511,66 @@ void get_orders_by_status(StockOrder *order_arr, OrderStatus orderStatus) {
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 }
 
+void get_recent_orders(StockOrder* order_arr) {
+    OCIStmt* stmthp;
+    sword status;
+    OCIBind* bnd1 = NULL;
+    OCIDefine* def1 = NULL, * def2 = NULL, * def3 = NULL, * def4 = NULL, * def5 = NULL, * def6 = NULL, * def7 = NULL, * def8 = NULL;
+    StockOrder order;
+    char created_at[CREATED_AT_BUF];
+    int max_result = 50;
+
+    // 1.  SQL문 핸들을 생성
+    char* sql = get_sql("sql/order_queries.json", "selectRecentOrder");
+    OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
+    OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX,
+        OCI_DEFAULT);
+    free(sql);
+    OCIBindByPos(stmthp, &bnd1, errhp, 1, &max_result, sizeof(max_result), SQLT_INT,
+        NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
+
+    // 2. 쿼리 실행
+    OCIStmtExecute(svchp, stmthp, errhp, 0, 0, NULL, NULL, OCI_DEFAULT);
+
+    // 3. 데이터 바인딩 (결과를 받을 변수)
+    OCIDefineByPos(stmthp, &def2, errhp, 1, &order.price, sizeof(order.price), SQLT_INT, NULL,
+        NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def3, errhp, 2, &order.amount, sizeof(order.amount), SQLT_INT, NULL,
+        NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def4, errhp, 3, &order.type, sizeof(order.type),
+        SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def5, errhp, 4, &order.status, sizeof(order.status),
+        SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def6, errhp, 5, &order.account_id, sizeof(order.account_id),
+        SQLT_INT, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def7, errhp, 6, &order.stock_id, sizeof(order.stock_id), SQLT_STR, NULL,
+        NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def8, errhp, 7, created_at, sizeof(created_at),
+        SQLT_STR, NULL, NULL, NULL, OCI_DEFAULT);
+    OCIDefineByPos(stmthp, &def1, errhp, 8, &order.order_id, sizeof(order.order_id), SQLT_INT, NULL, NULL,
+        NULL, OCI_DEFAULT);
+
+    // 4. 데이터 가져오기 
+    int idx = 0;
+    while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
+        == OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
+        order_arr[idx].order_id = order.order_id;
+        strcpy(order_arr[idx].stock_id, order.stock_id);
+        order_arr[idx].price = order.price;
+        order_arr[idx].amount = order.amount;
+        order_arr[idx].account_id = order.account_id;
+        order_arr[idx].type = order.type;
+        order_arr[idx].status = order.status;
+        if (datetime_to_tm(created_at, &order_arr[idx].created_at) != 0) {
+            printf("날짜 파싱 실패\n");
+            return;
+        }
+        idx++;
+    }
+
+    OCIHandleFree(stmthp, OCI_HTYPE_STMT);
+}
+
 void update_order_status(int order_id, OrderStatus status) {
     OCIStmt* stmthp;
     OCIBind* bnd1 = NULL, * bnd2 = NULL;
@@ -482,6 +597,7 @@ void update_order_status(int order_id, OrderStatus status) {
         //printf("데이터 수정 완료!\n");
     }
 }
+
 int handle_client_order(const char* csv) {
     StockOrder order;
     int abnormal_order = 0;
@@ -525,16 +641,56 @@ int handle_client_order(const char* csv) {
     }
 
     if (abnormal_order) {
-        update_account_status(order.account_id, ACCOUNT_SUSPENDED);
+        if (abnormal_order == 1) {
+            update_stock_status(order.stock_id, STOCK_SUSPENDED);
+        }
+        else
+        {
+            update_account_status(order.account_id, ACCOUNT_SUSPENDED);
+        }
         update_order_status(order.order_id, CANCELED);
-        // insert 구현 필요 
-         add_abnormal_transaction(&order, abnormal_order);      
+        add_abnormal_transaction(&order, abnormal_order);      
     }
     else {
         update_order_status(order.order_id, MATCHED);
-        // insert 구현 필요
         add_normal_transaction(&order);
     }
+}
+
+void handle_order_monitoring() {
+    int count = get_recent_order_count();
+    StockOrder* order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
+    if (order_arr == NULL) {
+        return;
+    }
+    get_recent_orders(order_arr);
+    printf("                                      << 실시간 모니터링 중입니다. 모니터링을 종료하려면 'q' 또는 ESC 키를 누르세요 >>                                      \n");
+    printf("============================================================================================================================================================\n");
+    printf("|                                                                   주문 모니터링 시스템                                                                   |\n");
+    printf("============================================================================================================================================================\n");
+    for (int i = 0; i < count; i++) {
+        print_order(&order_arr[i]);
+    }
+    fflush(stdout);  // 출력 버퍼 강제 플러시
+
+    // 실시간 모니터링을 별도 스레드로 실행
+    HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, real_time_monitoring, NULL, 0, NULL);
+    if (hThread == 0) {
+        printf("모니터링 스레드 생성 실패\n");
+        free(order_arr);
+        return;
+    }
+
+    while (!g_stopMonitoring) {
+        Sleep(100);
+    }
+
+    // 모니터링 종료 후 스레드 종료 대기
+    WaitForSingleObject(hThread, INFINITE);
+    CloseHandle(hThread);
+
+    free(order_arr);
+    g_stopMonitoring = 0;
 }
 
 void handle_order() {
@@ -542,87 +698,101 @@ void handle_order() {
     OrderStatus status;
     int choice, account_id, order_id, count = 0;
     char stock_id[STOCK_ID_BUF];
-    int exit_flag = 0;
-    while (1)
-    {
-        if (exit_flag) break;
-        printf("=====주문 관리 시스템=====\n");
-        printf("1. 모든 주문 조회\n");
-        printf("2. 특정 계좌의 주문 조회\n");
-        printf("3. 특정 종목의 주문 조회\n");
-        printf("4. 주문 상태별 조회\n");
-        printf("5. 주문 상태 변경\n");
-        printf("6. 종료\n");
-        printf("\n선택: ");
+    while (1) {
+        system("cls");
+        printf("=====================================\n");
+        printf("|                                   |\n");
+        printf("|          주문 관리 시스템         |\n");
+        printf("|                                   |\n");
+        printf("=====================================\n");
+        printf("|          메           뉴          |\n");
+        printf("-------------------------------------\n");
+        printf("|  1. 모든 주문 조회                |\n");
+        printf("-------------------------------------\n");
+        printf("|  2. 특정 계좌의 주문 조회         |\n");
+        printf("-------------------------------------\n");
+        printf("|  3. 특정 종목의 주문 조회         |\n");
+        printf("-------------------------------------\n");
+        printf("|  4. 주문 상태별 조회              |\n");
+        printf("-------------------------------------\n");
+        printf("|  5. 주문 모니터링                 |\n");
+        printf("-------------------------------------\n");
+        printf("|  6. 뒤로 가기                     |\n");
+        printf("-------------------------------------\n");
+        printf(">> 메뉴를 선택하세요 : ");
         scanf("%d", &choice);
+        system("cls");
         switch (choice)
         {
-            case 1:
-                // 모든 주문 조회
-                count = get_order_count();
-                order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
-                if (order_arr == NULL)
-                {
-                    printf("malloc 실패\n");
-                    return;
-                }
-                get_orders(order_arr);
-                print_orders(order_arr, count);
-                break;
-            case 2:
-                // 특정 계좌 주문 조회
-                printf("조회할 계좌 ID: ");
-                scanf("%d", &account_id);
-                count = get_order_count_by_account(account_id);
-                order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
-                if (order_arr == NULL)
-                {
-                    printf("malloc 실패\n");
-                    return;
-                }
-                get_orders_by_account(order_arr, account_id);
-                print_orders(order_arr, count);
-                break;
-            case 3:
-                // 특정 종목 주문 조회
-                printf("조회할 종목 ID: ");
-                scanf("%s", stock_id);
-                count = get_order_count_by_stock_id(stock_id);
-                order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
-                if (order_arr == NULL)
-                {
-                    printf("malloc 실패\n");
-                    return;
-                }
-                get_orders_by_stock_id(order_arr, stock_id);
-                print_orders(order_arr, count);
-                break;
-            case 4:
-                printf("조회할 주문 상태(0: 미체결, 1: 체결, 2: 취소): ");
-                scanf("%d", &status);
-                count = get_order_count_by_status(status);
-                order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
-                if (order_arr == NULL)
-                {
-                    printf("malloc 실패\n");
-                    return;
-                }
-                get_orders_by_status(order_arr, status);
-                print_orders(order_arr, count);
-                break;
-            case 5:
-                printf("상태 변경할 주문 ID: ");
-                scanf("%d", &order_id);
-                printf("변경 주문 상태(0: 미체결, 1: 체결, 2: 취소): ");
-                scanf("%d", &status);
-                update_order_status(order_id, status);
-                break;
-            case 6:
-                exit_flag = 1;
-                break;
-            default:
-                printf("잘못된 선택입니다\n");
-                break;
+        case 1:
+            // 모든 주문 조회
+            count = get_order_count();
+            order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
+            if (order_arr == NULL)
+            {
+                printf("malloc 실패\n");
+                return;
+            }
+            get_orders(order_arr);
+            print_orders(order_arr, count);
+            break;
+        case 2:
+            // 특정 계좌 주문 조회
+            printf("조회할 계좌 ID: ");
+            scanf("%d", &account_id);
+            count = get_order_count_by_account(account_id);
+            order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
+            if (order_arr == NULL)
+            {
+                printf("malloc 실패\n");
+                return;
+            }
+            get_orders_by_account(order_arr, account_id);
+            print_orders(order_arr, count);
+            break;
+        case 3:
+            // 특정 종목 주문 조회
+            printf("조회할 종목 ID: ");
+            scanf("%s", stock_id);
+            count = get_order_count_by_stock_id(stock_id);
+            order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
+            if (order_arr == NULL)
+            {
+                printf("malloc 실패\n");
+                return;
+            }
+            get_orders_by_stock_id(order_arr, stock_id);
+            print_orders(order_arr, count);
+            break;
+        case 4:
+            printf("조회할 주문 상태(0: 미체결, 1: 체결, 2: 취소): ");
+            scanf("%d", &status);
+            count = get_order_count_by_status(status);
+            order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
+            if (order_arr == NULL)
+            {
+                printf("malloc 실패\n");
+                return;
+            }
+            get_orders_by_status(order_arr, status);
+            print_orders(order_arr, count);
+            break;
+        case 5:
+            // printf("상태 변경할 주문 ID: ");
+            // scanf("%d", &order_id);
+            // printf("변경 주문 상태(0: 미체결, 1: 체결, 2: 취소): ");
+            // scanf("%d", &status);
+            // update_order_status(order_id, status);
+            // break;
+
+            // [변경] 주문 모니터링(최근 내역 조회, 최대 50개)
+            handle_order_monitoring();
+            break;
+        case 6:
+            return;
+        default:
+            printf("올바른 메뉴를 선택하세요.\n");
+            break;
         }
     }
 }

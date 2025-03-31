@@ -140,6 +140,7 @@
     <ClCompile Include="socket.c" />
     <ClCompile Include="account.c" />
     <ClCompile Include="customer.c" />
+    <ClCompile Include="stock.c" />
     <ClCompile Include="transaction.c" />
     <ClCompile Include="util.c" />
   </ItemGroup>
@@ -153,6 +154,7 @@
     <ClInclude Include="socket.h" />
     <ClInclude Include="account.h" />
     <ClInclude Include="customer.h" />
+    <ClInclude Include="stock.h" />
     <ClInclude Include="transaction.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
@@ -161,6 +163,7 @@
     <None Include="sql\fbs_queries.json" />
     <None Include="sql\order_queries.json" />
     <None Include="sql\customer_queries.json" />
+    <None Include="sql\stock_queries.json" />
     <None Include="sql\transaction_queries.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
