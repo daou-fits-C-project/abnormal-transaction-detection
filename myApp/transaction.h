@@ -33,7 +33,7 @@ typedef struct {
 //} AbnormalTransaction;
 
 typedef struct {
-	int transaction_id;
+	int account_id;
 	int type;
 	int amount;
 	int order_id;
@@ -44,7 +44,7 @@ typedef struct {
 } AccountTransaction;
 
 typedef struct {
-	int transaction_id;
+	char stock_name[STOCK_NAME_BUF];
 	int type;
 	int amount;
 	int account_id;

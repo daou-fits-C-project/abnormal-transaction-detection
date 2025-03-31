@@ -18,7 +18,7 @@ void select_account_transaction(int account_id) {
 	char created_at[CREATED_AT_BUF];
 	int max_result = 100;
 
-	char* sql = "SELECT * FROM (SELECT * FROM (SELECT n.transaction_id, n.type, (SELECT name FROM STOCK WHERE n.stock_id = stock_id) stock_name, n.amount, n.price, n.created_at, n.order_id, '정상' AS detection_type FROM normal_transaction n WHERE n.account_id = :1 UNION ALL SELECT a.transaction_id, a.type, (SELECT name FROM STOCK WHERE a.stock_id = stock_id) stock_name, a.amount, a.price, a.created_at, a.order_id, d.type_name as detection_type FROM abnormal_transaction a JOIN detection_type d ON a.detection_id = d.detection_id WHERE a.account_id = :2 ORDER BY created_at DESC) WHERE ROWNUM <= :3) ORDER BY created_at ASC";
+	char* sql = "SELECT * FROM (SELECT * FROM (SELECT n.account_id, n.type, (SELECT name FROM STOCK WHERE n.stock_id = stock_id) stock_name, n.amount, n.price, n.created_at, n.order_id, '정상' AS detection_type FROM normal_transaction n WHERE n.account_id = :1 UNION ALL SELECT a.transaction_id, a.type, (SELECT name FROM STOCK WHERE a.stock_id = stock_id) stock_name, a.amount, a.price, a.created_at, a.order_id, d.type_name as detection_type FROM abnormal_transaction a JOIN detection_type d ON a.detection_id = d.detection_id WHERE a.account_id = :2 ORDER BY created_at DESC) WHERE ROWNUM <= :3) ORDER BY created_at ASC";
 
 	#ifdef DEBUG
 		printf("> 새로운 핸들 생성\n");
@@ -26,7 +26,7 @@ void select_account_transaction(int account_id) {
 	OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 	OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
 
-	OCIDefineByPos(stmthp, &def1, errhp, 1, &result.transaction_id, sizeof(result.transaction_id), SQLT_INT, NULL, NULL,
+	OCIDefineByPos(stmthp, &def1, errhp, 1, &result.account_id, sizeof(result.account_id), SQLT_INT, NULL, NULL,
 		NULL, OCI_DEFAULT);
 	OCIDefineByPos(stmthp, &def2, errhp, 2, &result.type, sizeof(result.type), SQLT_INT, NULL,
 		NULL, NULL, OCI_DEFAULT);
@@ -71,7 +71,7 @@ void select_account_transaction(int account_id) {
 		printf("===================================================================================================================================\n");
 		printf("|                                                            조회 결과                                                            |\n");
 		printf("===================================================================================================================================\n");
-		printf("| 거래 ID | 거래 유형 |      거래 종목      |    수량    |      금액      |  이상 거래 여부  |      거래 일시      | 관련 주문 ID |\n");
+		printf("| 계좌 ID | 거래 유형 |      거래 종목      |    수량    |      금액      |  이상 거래 여부  |      거래 일시      | 관련 주문 ID |\n");
 		printf("-----------------------------------------------------------------------------------------------------------------------------------\n");
 		while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
 			== OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
@@ -88,8 +88,8 @@ void select_account_transaction(int account_id) {
 				return;
 			}
 			printf("| %7d | %9s | %-19s | %10d | %14.1lf | %16s | %17s | %12d |\n",
-				result.transaction_id,
-				result.type == 1 ? "매수" : "매도",
+				result.account_id,
+				result.type == 0 ? "매수" : "매도",
 				result.stock_name,
 				result.amount,
 				result.price,
@@ -116,7 +116,7 @@ void select_stock_transaction(char* stock_id) {
 	char created_at[CREATED_AT_BUF];
 	int max_result = 100;
 
-	char* sql = "SELECT * FROM (SELECT * FROM (SELECT n.transaction_id, n.type, n.account_id, n.amount, n.price, n.created_at, n.order_id, '정상' AS detection_type FROM normal_transaction n WHERE n.stock_id = :1 UNION ALL SELECT a.transaction_id, a.type, a.account_id, a.amount, a.price, a.created_at, a.order_id, d.type_name as detection_type FROM abnormal_transaction a JOIN detection_type d ON a.detection_id = d.detection_id WHERE a.stock_id = :2 ORDER BY created_at DESC) WHERE ROWNUM <= :3) ORDER BY created_at ASC";
+	char* sql = "SELECT * FROM (SELECT * FROM (SELECT (SELECT name FROM STOCK WHERE n.stock_id = stock_id) stock_name, n.type, n.account_id, n.amount, n.price, n.created_at, n.order_id, '정상' AS detection_type FROM normal_transaction n WHERE n.stock_id = :1 UNION ALL SELECT (SELECT name FROM STOCK WHERE a.stock_id = stock_id) stock_name, a.type, a.account_id, a.amount, a.price, a.created_at, a.order_id, d.type_name as detection_type FROM abnormal_transaction a JOIN detection_type d ON a.detection_id = d.detection_id WHERE a.stock_id = :2 ORDER BY created_at DESC) WHERE ROWNUM <= :3) ORDER BY created_at ASC";
 
 #ifdef DEBUG
 	printf("> 새로운 핸들 생성\n");
@@ -124,7 +124,7 @@ void select_stock_transaction(char* stock_id) {
 	OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 	OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
 
-	OCIDefineByPos(stmthp, &def1, errhp, 1, &result.transaction_id, sizeof(result.transaction_id), SQLT_INT, NULL, NULL,
+	OCIDefineByPos(stmthp, &def1, errhp, 1, result.stock_name, sizeof(result.stock_name), SQLT_STR, NULL, NULL,
 		NULL, OCI_DEFAULT);
 	OCIDefineByPos(stmthp, &def2, errhp, 2, &result.type, sizeof(result.type), SQLT_INT, NULL,
 		NULL, NULL, OCI_DEFAULT);
@@ -166,11 +166,11 @@ void select_stock_transaction(char* stock_id) {
 		printf("> SQL문 결과 매핑 시작\n");
 #endif // DEBUG
 
-		printf("=========================================================================================================================\n");
-		printf("|                                                       조회 결과                                                       |\n");
-		printf("=========================================================================================================================\n");
-		printf("| 거래 ID | 거래 유형 |  계좌 ID  |    수량    |      금액      |  이상 거래 여부  |      거래 일시      | 관련 주문 ID |\n");
-		printf("-------------------------------------------------------------------------------------------------------------------------\n");
+		printf("===============================================================================================================================\n");
+		printf("|                                                          조회 결과                                                          |\n");
+		printf("===============================================================================================================================\n");
+		printf("|   종목 이름   | 거래 유형 |  계좌 ID  |    수량    |      금액      |  이상 거래 여부  |      거래 일시      | 관련 주문 ID |\n");
+		printf("-------------------------------------------------------------------------------------------------------------------------------\n");
 		while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
 			== OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
 			if (datetime_to_tm(created_at, &result.created_at) != 0) {
@@ -185,9 +185,9 @@ void select_stock_transaction(char* stock_id) {
 #endif
 				return;
 			}
-			printf("| %7d | %9s | %-9d | %10d | %14.1lf | %16s | %17s | %12d |\n",
-				result.transaction_id,
-				result.type == 1 ? "매수" : "매도",
+			printf("| %13s | %9s | %-9d | %10d | %14.1lf | %16s | %17s | %12d |\n",
+				result.stock_name,
+				result.type == 0 ? "매수" : "매도",
 				result.account_id,
 				result.amount,
 				result.price,
@@ -195,7 +195,7 @@ void select_stock_transaction(char* stock_id) {
 				buffer,
 				result.order_id
 			);
-			printf("-------------------------------------------------------------------------------------------------------------------------\n");
+			printf("-------------------------------------------------------------------------------------------------------------------------------\n");
 		}
 	}
 	OCIHandleFree(stmthp, OCI_HTYPE_STMT);
