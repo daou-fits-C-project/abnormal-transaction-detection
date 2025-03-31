@@ -10,12 +10,15 @@
 #include "fds.h"
 #include "account.h"
 #include "transaction.h"
+#include "stock.h"
 
 
 int add_order(StockOrder *order) {
     Account acc;
+    Stock stock;
     get_account_by_id(&acc, order->account_id);
-    if (acc.status != ACCOUNT_ACTIVE) return 0;
+    get_stock_status(&stock, order->stock_id);
+    if (acc.status != ACCOUNT_ACTIVE || stock.status != STOCK_ACTIVE) return 0;
 
     OCIStmt* stmthp;
     OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL, * bnd5 = NULL, * bnd6 = NULL, * bnd7 = NULL;
@@ -525,14 +528,18 @@ int handle_client_order(const char* csv) {
     }
 
     if (abnormal_order) {
-        update_account_status(order.account_id, ACCOUNT_SUSPENDED);
+        if (abnormal_order == 1) {
+            update_stock_status(order.stock_id, STOCK_SUSPENDED);
+        }
+        else
+        {
+            update_account_status(order.account_id, ACCOUNT_SUSPENDED);
+        }
         update_order_status(order.order_id, CANCELED);
-        // insert 구현 필요 
-         add_abnormal_transaction(&order, abnormal_order);      
+        add_abnormal_transaction(&order, abnormal_order);      
     }
     else {
         update_order_status(order.order_id, MATCHED);
-        // insert 구현 필요
         add_normal_transaction(&order);
     }
 }
