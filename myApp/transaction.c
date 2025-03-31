@@ -6,7 +6,7 @@
 #include "transaction.h"
 #include "util.h"
 
-#define DEBUG
+//#define DEBUG
 
 void select_account_transaction(int account_id) {
 	OCIStmt* stmthp;
@@ -54,15 +54,23 @@ void select_account_transaction(int account_id) {
 		printf("> SQL문 실행 시작\n");
 	#endif // DEBUG
 	// SQL 실행
-	if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) {
-		check_error(errhp);
+	sword status;
+
+	status = OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT);
+
+	if (status != OCI_SUCCESS) {
+		if (status == OCI_NO_DATA) {
+			printf(">> 조회 결과가 없습니다.\n");
+		}
+		else {
+			check_error(errhp);
+		}
 	}
 	else {
 		#ifdef DEBUG
 			printf("> SQL문 실행 성공\n");
 		#endif // DEBUG
 		// SQL 실행 결과
-		sword status;
 		char buffer[CREATED_AT_BUF];
 		#ifdef DEBUG
 			printf("> SQL문 결과 매핑 시작\n");
@@ -118,9 +126,9 @@ void select_stock_transaction(char* stock_id) {
 
 	char* sql = "SELECT * FROM (SELECT * FROM (SELECT (SELECT name FROM STOCK WHERE n.stock_id = stock_id) stock_name, n.type, n.account_id, n.amount, n.price, n.created_at, n.order_id, '정상' AS detection_type FROM normal_transaction n WHERE n.stock_id = :1 UNION ALL SELECT (SELECT name FROM STOCK WHERE a.stock_id = stock_id) stock_name, a.type, a.account_id, a.amount, a.price, a.created_at, a.order_id, d.type_name as detection_type FROM abnormal_transaction a JOIN detection_type d ON a.detection_id = d.detection_id WHERE a.stock_id = :2 ORDER BY created_at DESC) WHERE ROWNUM <= :3) ORDER BY created_at ASC";
 
-#ifdef DEBUG
-	printf("> 새로운 핸들 생성\n");
-#endif // DEBUG
+	#ifdef DEBUG
+		printf("> 새로운 핸들 생성\n");
+	#endif // DEBUG
 	OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 	OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
 
@@ -148,23 +156,32 @@ void select_stock_transaction(char* stock_id) {
 	OCIBindByPos(stmthp, &bnd3, errhp, 3, &max_result, sizeof(max_result),
 		SQLT_INT, NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
 
-#ifdef DEBUG
-	printf("> SQL문 실행 시작\n");
-#endif // DEBUG
+	#ifdef DEBUG
+		printf("> SQL문 실행 시작\n");
+	#endif // DEBUG
+
 	// SQL 실행
-	if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) {
-		check_error(errhp);
+	sword status;
+
+	status = OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT);
+
+	if (status != OCI_SUCCESS) {
+		if (status == OCI_NO_DATA) {
+			printf(">> 조회 결과가 없습니다.\n");
+		}
+		else {
+			check_error(errhp);
+		}
 	}
 	else {
-#ifdef DEBUG
-		printf("> SQL문 실행 성공\n");
-#endif // DEBUG
+		#ifdef DEBUG
+			printf("> SQL문 실행 성공\n");
+		#endif // DEBUG
 		// SQL 실행 결과
-		sword status;
 		char buffer[CREATED_AT_BUF];
-#ifdef DEBUG
-		printf("> SQL문 결과 매핑 시작\n");
-#endif // DEBUG
+		#ifdef DEBUG
+			printf("> SQL문 결과 매핑 시작\n");
+		#endif // DEBUG
 
 		printf("===============================================================================================================================\n");
 		printf("|                                                          조회 결과                                                          |\n");
@@ -174,15 +191,15 @@ void select_stock_transaction(char* stock_id) {
 		while ((status = OCIStmtFetch2(stmthp, errhp, 1, OCI_DEFAULT, 0, OCI_DEFAULT))
 			== OCI_SUCCESS || status == OCI_SUCCESS_WITH_INFO) {
 			if (datetime_to_tm(created_at, &result.created_at) != 0) {
-#ifdef DEBUG
-				printf("날짜 파싱 실패\n");
-#endif
+				#ifdef DEBUG
+					printf("날짜 파싱 실패\n");
+				#endif
 				return;
 			}
 			if (tm_to_string(&result.created_at, buffer) != 0) {
-#ifdef DEBUG
-				printf("날짜 파싱 실패\n");
-#endif
+				#ifdef DEBUG
+					printf("날짜 파싱 실패\n");
+				#endif
 				return;
 			}
 			printf("| %13s | %9s | %-9d | %10d | %14.1lf | %16s | %17s | %12d |\n",
@@ -199,9 +216,9 @@ void select_stock_transaction(char* stock_id) {
 		}
 	}
 	OCIHandleFree(stmthp, OCI_HTYPE_STMT);
-#ifdef DEBUG
-	printf("> 핸들 종료\n");
-#endif // DEBUG
+	#ifdef DEBUG
+		printf("> 핸들 종료\n");
+	#endif // DEBUG
 }
 
 void add_normal_transaction(StockOrder* order) {
