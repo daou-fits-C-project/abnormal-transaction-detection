@@ -4,7 +4,7 @@
   "selectByAccountId": "SELECT * FROM stock_order WHERE account_id = :1",
   "selectByStockId": "SELECT * FROM stock_order WHERE stock_id = :1",
   "selectByStatus": "SELECT * FROM stock_order WHERE status = :1",
-  "selectRecentOrder": "SELECT * FROM (SELECT * FROM stock_order ORDER BY created_at) s WHERE ROWNUM <= :1",
+  "selectRecentOrder": "SELECT * FROM (SELECT * FROM stock_order ORDER BY created_at DESC) s WHERE ROWNUM <= :1 ORDER BY created_at",
   "getCount": "SELECT COUNT(order_id) FROM stock_order",
   "getCountByAccountId": "SELECT COUNT(order_id) FROM stock_order WHERE account_id = :1",
   "getCountByStockId": "SELECT COUNT(order_id) FROM stock_order WHERE stock_id = :1",

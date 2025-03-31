@@ -107,7 +107,7 @@ DWORD WINAPI receiver_thread(LPVOID lpParam) {
                     if (len <= 0) {
                         closesocket(s);
                         FD_CLR(s, &master_set);
-                        printf("클라이언트 종료: %d\n", s);
+                        //printf("클라이언트 종료: %d\n", s);
                     }
                     else {
                         task.client_socket = s;
@@ -124,6 +124,7 @@ DWORD WINAPI receiver_thread(LPVOID lpParam) {
 
 
 DWORD WINAPI worker_thread(LPVOID lpParam) {
+    int success = 1;
     HANDLE wait_events[2] = { shutdown_event, queue_not_empty_event };
     while (1) {
         DWORD wait_result = WaitForMultipleObjects(2, wait_events, FALSE, INFINITE);
@@ -137,10 +138,17 @@ DWORD WINAPI worker_thread(LPVOID lpParam) {
 
              // 주문 처리 로직 함수 
              //printf("[Worker] 주문 처리: %s (소켓: %d)\n", task.data, (int)task.client_socket);
-             handle_client_order(task.data);
-     
-             const char* response = "ORDER RECEIVED\n";
-             send(task.client_socket, response, (int)strlen(response), 0);
+             success = handle_client_order(task.data);
+             if (success)
+             {
+                const char* response = "ORDER SUCCESS\n";
+                send(task.client_socket, response, (int)strlen(response), 0);
+
+             } 
+             else {
+                 const char* response = "ORDER FAIL\n";
+                 send(task.client_socket, response, (int)strlen(response), 0);
+             }
         }
 
     }

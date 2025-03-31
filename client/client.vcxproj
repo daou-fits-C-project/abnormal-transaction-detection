@@ -108,6 +108,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,7 +129,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="abnormal_order_1.c" />
+    <ClCompile Include="abnormal_order_2.c" />
+    <ClCompile Include="abnormal_order_3.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="normal_order.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="order.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

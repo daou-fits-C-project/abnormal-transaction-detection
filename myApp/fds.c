@@ -5,14 +5,14 @@
 #include "db.h"
 #include "util.h"
 
-#define DEBUG
+//#define DEBUG
 
 // 설정 변수
 int day = 10;                     // 거래량 계산 기간
 double stock_threshold = 2.58;    // 99% 신뢰도에 따른 Z Score
 double ratio = 0.3;               // 특정 계좌 거래량 비율
-double time_interval = 1800;      // 과거 주문 내역 간격
-double lambda = 3;                // 단위 간격 동안의 주문 횟수
+double time_interval = 120;      // 과거 주문 내역 간격
+double lambda = 50;                // 단위 간격 동안의 주문 횟수
 double lambda_threshold = 1.645;  // 95% 신뢰도에 따른 Z Score
 
 static OCIStmt* stmthp;
@@ -136,10 +136,10 @@ int detect_wash_sale(StockOrder* stock_order) {
     char* order_sql = "SELECT count(*) FROM stock_order WHERE account_id = :1 AND stock_id = :2 AND created_at BETWEEN TO_TIMESTAMP(:3, 'YYYY-MM-DD HH24:MI:SS') AND TO_TIMESTAMP(:4, 'YYYY-MM-DD HH24:MI:SS')";
 
     // time_inverval 초 전 계산
-    strftime(end_time, sizeof(end_time), "%Y-%m-%d %H:%M:%S", &stock_order->created_at);
+    strftime(end_time, sizeof(end_time), "%Y/%m/%d %H:%M:%S", &stock_order->created_at);
     time_t past_time = mktime(&stock_order->created_at) - time_interval;
     struct tm* past_tm = localtime(&past_time);
-    strftime(start_time, sizeof(start_time), "%Y-%m-%d %H:%M:%S", past_tm);
+    strftime(start_time, sizeof(start_time), "%Y/%m/%d %H:%M:%S", past_tm);
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
     OCIStmtPrepare(stmthp, errhp, (text*)order_sql, strlen(order_sql), OCI_NTV_SYNTAX, OCI_DEFAULT);

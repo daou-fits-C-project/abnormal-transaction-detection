@@ -225,7 +225,7 @@ void add_normal_transaction(StockOrder* order) {
 
 	OCIStmt* stmthp;
 	OCIBind* bnd1 = NULL, * bnd2 = NULL, * bnd3 = NULL, * bnd4 = NULL, * bnd5 = NULL, * bnd6 = NULL, * bnd7 = NULL;
-	printf("add_normal");
+	//printf("add_normal");
 	char* sql = get_sql("sql/transaction_queries.json", "insertNormalTransaction");
 	OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 	OCIStmtPrepare(stmthp, errhp, (text*)sql, strlen(sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
@@ -250,7 +250,7 @@ void add_normal_transaction(StockOrder* order) {
 		check_error(errhp);
 	}
 	else {
-		printf("데이터 삽입 완료!\n");
+		//printf("데이터 삽입 완료!\n");
 		//print_order(order);
 	}
 }
