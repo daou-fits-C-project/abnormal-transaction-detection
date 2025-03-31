@@ -26,7 +26,6 @@ typedef struct {
     struct tm created_at;
 } StockOrder;
 
-
 // 주요 함수 선언
 int add_order(StockOrder* order);
 void print_order(const StockOrder* order);
@@ -46,3 +45,7 @@ const char* order_status_to_string(OrderStatus status);
 const char* order_type_to_string(OrderType type);
 OrderStatus parse_order_status(const char* str);
 OrderType parse_order_type(const char* str);
+
+//모니터링 관련
+void get_recent_orders(StockOrder* order_arr);
+void handle_order_monitoring();
