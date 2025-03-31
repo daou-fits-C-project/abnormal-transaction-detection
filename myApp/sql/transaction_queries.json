@@ -1,0 +1,4 @@
+{
+  "insertNormalTransaction": "INSERT INTO normal_transaction (price, amount, type, account_id, stock_id, order_id) VALUES (:1, :2, :3, :4, :5, :6)",
+  "insertAbnormalTransaction": "INSERT INTO abnormal_transaction (price, amount, type, detection_id, account_id, stock_id, order_id) VALUES (:1, :2, :3, :4, :5, :6, :7)"
+}
