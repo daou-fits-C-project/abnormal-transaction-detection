@@ -8,11 +8,11 @@
 #define DEBUG
 
 // 설정 변수
-int month = 10;                   // 거래량 계산 기간
-double stock_threshold = 0.74;    // 77% 신뢰도에 따른 Z Score
+int day = 10;                     // 거래량 계산 기간
+double stock_threshold = 2.58;    // 99% 신뢰도에 따른 Z Score
 double ratio = 0.3;               // 특정 계좌 거래량 비율
 double time_interval = 1800;      // 과거 주문 내역 간격
-double lambda = 2;                // 단위 간격 동안의 주문 횟수
+double lambda = 3;                // 단위 간격 동안의 주문 횟수
 double lambda_threshold = 1.645;  // 95% 신뢰도에 따른 Z Score
 
 static OCIStmt* stmthp;
@@ -34,14 +34,14 @@ int detect_stock_amount(StockOrder* stock_order) {
     today.OCIDateDD = stock_order->created_at.tm_mday;
 
     // 과거 30일 동안의 거래량 SQL
-    char* z_score_sql = "SELECT AVG(amount), STDDEV(amount) FROM transaction_log WHERE stock_id = :1 AND trade_date BETWEEN TRUNC(:2 - :3) AND TRUNC(:2) AND amount > 0";
+    char* z_score_sql = "SELECT AVG(amount), STDDEV(amount) FROM transaction_log WHERE stock_id = :1 AND trade_date BETWEEN TRUNC(:2 - :3 - 1) AND TRUNC(:2 - 1) AND amount > 0";
 
     OCIHandleAlloc(envhp, (void**)&stmthp, OCI_HTYPE_STMT, 0, NULL);
 
     OCIStmtPrepare(stmthp, errhp, (text*)z_score_sql, strlen(z_score_sql), OCI_NTV_SYNTAX, OCI_DEFAULT);
     OCIBindByPos(stmthp, &bnd1, errhp, 1, stock_order->stock_id, sizeof(stock_order->stock_id), SQLT_STR, NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
     OCIBindByPos(stmthp, &bnd2, errhp, 2, &today, sizeof(today), SQLT_ODT, NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
-    OCIBindByPos(stmthp, &bnd3, errhp, 3, &month, sizeof(month), SQLT_INT, NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
+    OCIBindByPos(stmthp, &bnd3, errhp, 3, &day, sizeof(day), SQLT_INT, NULL, NULL, NULL, 0, NULL, OCI_DEFAULT);
 
     OCIDefineByPos(stmthp, &def1, errhp, 1, &avg_amount, sizeof(avg_amount), SQLT_BDOUBLE, NULL, NULL, NULL, OCI_DEFAULT);
     OCIDefineByPos(stmthp, &def2, errhp, 2, &std_amount, sizeof(std_amount), SQLT_BDOUBLE, NULL, NULL, NULL, OCI_DEFAULT);
@@ -66,7 +66,7 @@ int detect_stock_amount(StockOrder* stock_order) {
     double z_score = (today_amount + stock_order->amount - avg_amount) / std_amount;
 
 #ifdef DEBUG
-    printf("과거 %d일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", month, avg_amount, std_amount);
+    printf("과거 %d일 동안의 거래량 평균: %.2lf, 표준편차: %.2lf\n", day, avg_amount, std_amount);
     printf("당일 총 거래량 : %.2lf\n", today_amount + stock_order->amount);
     printf("Z-Score: %.2lf\n", z_score);
 #endif
@@ -154,15 +154,15 @@ int detect_wash_sale(StockOrder* stock_order) {
     if (OCIStmtExecute(svchp, stmthp, errhp, 1, 0, NULL, NULL, OCI_DEFAULT) != OCI_SUCCESS) check_error(errhp);
     OCIHandleFree(stmthp, OCI_HTYPE_STMT);
 
-    double z_score = ((double)count - lambda) / sqrt(lambda);
+    //double z_score = ((double)count - lambda) / sqrt(lambda);
 
 #ifdef DEBUG
     printf("%s ~ %s\n", start_time, end_time);
     printf("%.lf초 동안의 주문 횟수: %d\n", time_interval, count);
-    printf("Z-Score: %.2lf\n", z_score);
+    //printf("Z-Score: %.2lf\n", z_score);
 #endif
 
-    if (z_score >= lambda_threshold) return 0;
+    if (count >= lambda) return 0;
     return 1;
 }
 
