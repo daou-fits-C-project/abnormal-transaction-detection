@@ -58,4 +58,5 @@ void select_account_transaction(int account_id);
 void select_stock_transaction(char* stock_id);
 void add_normal_transaction(StockOrder* order);
 void add_abnormal_transaction(StockOrder* order, int detection_id);
+void handle_transaction_log();
 #endif
