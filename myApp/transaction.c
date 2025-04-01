@@ -6,7 +6,7 @@
 #include "transaction.h"
 #include "util.h"
 
-#define DEBUG
+//#define DEBUG
 
 void select_account_transaction(int account_id) {
 	OCIStmt* stmthp;
