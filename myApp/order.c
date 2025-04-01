@@ -91,18 +91,19 @@ void print_orders(StockOrder* order_arr, int count) {
     char status[STATUS_BUF];
     char created_at[CREATED_AT_BUF];
 
-    printf("\n조회 결과 : \n");
-    printf("--------------------------------------------------------------------------------------------\n");
+    printf("==================================================================================================================================================\n");
+    printf("|                                                                  조회 결과                                                                     |\n");
+    printf("==================================================================================================================================================\n");
     for (int i = 0; i < count; i++)
     {
 
         strcpy(status, order_status_to_string(order_arr[i].status));
         tm_to_string(&order_arr[i].created_at, created_at);
-        printf("주문 ID: %5d, 주식 코드: %8s, 가격: %8d, 수량: %4d, 주문 상태: %10s, 계좌 ID : %4d, 주문 일자 : %s\n",
+        printf("| 주문 ID: %5d | 주식 코드: %8s | 가격: %8d | 수량: %4d | 주문 상태: %10s | 계좌 ID : %4d | 주문 일자 : %s |\n",
             order_arr[i].order_id, order_arr[i].stock_id, order_arr[i].price, order_arr[i].amount,
             status, order_arr[i].account_id, created_at);
     }
-    printf("--------------------------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------------------------------------------------------------------------------------------\n");
 
 
     free(order_arr);
@@ -738,6 +739,7 @@ void handle_order() {
             }
             get_orders(order_arr);
             print_orders(order_arr, count);
+            to_be_continue();
             break;
         case 2:
             // 특정 계좌 주문 조회
@@ -752,6 +754,7 @@ void handle_order() {
             }
             get_orders_by_account(order_arr, account_id);
             print_orders(order_arr, count);
+            to_be_continue();
             break;
         case 3:
             // 특정 종목 주문 조회
@@ -766,6 +769,7 @@ void handle_order() {
             }
             get_orders_by_stock_id(order_arr, stock_id);
             print_orders(order_arr, count);
+            to_be_continue();
             break;
         case 4:
             printf("조회할 주문 상태(0: 미체결, 1: 체결, 2: 취소): ");
@@ -779,6 +783,7 @@ void handle_order() {
             }
             get_orders_by_status(order_arr, status);
             print_orders(order_arr, count);
+            to_be_continue();
             break;
         case 5:
             // printf("상태 변경할 주문 ID: ");
@@ -795,6 +800,7 @@ void handle_order() {
             return;
         default:
             printf("올바른 메뉴를 선택하세요.\n");
+            to_be_continue();
             break;
         }
     }
