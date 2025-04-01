@@ -758,7 +758,7 @@ void handle_order() {
             break;
         case 3:
             // 특정 종목 주문 조회
-            printf("조회할 종목 ID: ");
+            printf("조회할 종목 코드: ");
             scanf("%s", stock_id);
             count = get_order_count_by_stock_id(stock_id);
             order_arr = (StockOrder*)malloc(sizeof(StockOrder) * count);
