@@ -85,7 +85,8 @@ void handle_transaction_log() {
 			printf(">> 상태 입력 (0: 정상, 1: 일시 정지, 2: 잠김, 3 :해지됨, 4: 개설 중, 5: 동결됨, 6: 인증 미완료, 7: 제한 계좌 ) ");
 			scanf("%d", &status);
 			update_account_status(account_id, status);
-			handle_order(); break;
+			to_be_continue();
+			break;
 		case 4: return;
 		default: printf("올바른 메뉴를 선택하세요\n"); break;
 		}
