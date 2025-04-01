@@ -319,7 +319,7 @@ void handle_account() {
             // 계좌 상태 수정
             printf("수정할 계좌 ID: ");
             scanf("%d", &account_id);
-            printf("상태 입력 (0: 정상, 1: 일시 정지, 2: 잠김, 3 :해지됨, 4: 개설 중, 5: 동결됨, 6: 인증 미완료, 7: 제한 계좌 ");
+            printf("상태 입력 (0: 정상, 1: 일시 정지, 2: 잠김, 3 :해지됨, 4: 개설 중, 5: 동결됨, 6: 인증 미완료, 7: 제한 계좌) : ");
             scanf("%d", &status);
             update_account_status(account_id, status);
             break;
