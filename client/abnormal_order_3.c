@@ -91,6 +91,13 @@ void run_abnormal_order_3() {
         Sleep(1000);
     }
 
+    // 엔터 키 대기
+    printf("엔터 키를 누르면 다음으로 진행합니다...");
+    fflush(stdout); // 출력이 버퍼에 남지 않도록
+    getchar();      // 첫 번째 엔터 처리용 (만약 이전 입력 버퍼에 엔터가 남아있을 경우)
+    getchar();
+
+
     WaitForMultipleObjects(CLIENT, threads, TRUE, INFINITE);
     printf("모든 클라이언트 종료\n");
     return;
