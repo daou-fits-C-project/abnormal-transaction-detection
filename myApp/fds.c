@@ -1,6 +1,7 @@
 ﻿#include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <Windows.h>
 #include "fds.h"
 #include "db.h"
 #include "util.h"
@@ -198,7 +199,9 @@ void report_FDS() {
 
     if (flag) {
         export_to_CSV(records, index);
-        export_to_HTML(records, index);
+        // export_to_HTML(records, index);
+        Sleep(2000);
+        system("python server.py");
     }
     else {
         printf("이상 거래 내역이 존재하지 않습니다.\n");
